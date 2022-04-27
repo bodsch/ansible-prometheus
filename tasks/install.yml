@@ -1,0 +1,80 @@
+---
+
+- name: detect binary file for prometheus
+  become: false
+  delegate_to: "{{ prometheus_delegate_to }}"
+  stat:
+    path: "{{ prometheus_local_tmp_directory }}/prometheus-{{ prometheus_version }}.linux-amd64/prometheus"
+  register: stat_file_binary
+
+- block:
+    - name: propagate prometheus binaries
+      copy:
+        src: "{{ prometheus_local_tmp_directory }}/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
+        dest: "{{ prometheus_install_path }}/{{ item }}"
+        mode: 0755
+        owner: "{{ prometheus_system_user }}"
+        group: "{{ prometheus_system_group }}"
+        remote_src: "{{ 'true' if prometheus_direct_download else 'false' }}"
+      loop:
+        - prometheus
+        - promtool
+
+    - name: make files executable
+      file:
+        path: "{{ prometheus_install_path }}/{{ item }}"
+        mode: 0755
+        owner: "{{ prometheus_system_user }}"
+        group: "{{ prometheus_system_group }}"
+      loop:
+        - prometheus
+        - promtool
+  when:
+    - stat_file_binary.stat.exists
+
+- name: propagate official console templates
+  copy:
+    src: "{{ prometheus_local_tmp_directory }}/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}/"
+    dest: "{{ prometheus_config_dir }}/{{ item }}/"
+    mode: 0644
+    owner: "{{ prometheus_system_user }}"
+    group: "{{ prometheus_system_group }}"
+  loop:
+    - console_libraries
+    - consoles
+  notify:
+    - reload prometheus
+
+- name: create link to binary
+  file:
+    src: "{{ prometheus_install_path }}/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    state: link
+    force: true
+    follow: false
+  loop:
+    - prometheus
+    - promtool
+  notify:
+    - restart prometheus
+
+- name: create prometheus data directory
+  file:
+    path: "{{ prometheus_data_dir }}"
+    state: directory
+    owner: "{{ prometheus_system_user }}"
+    group: "{{ prometheus_system_group }}"
+    mode: 0755
+
+- name: create systemd service unit
+  template:
+    src: "init/systemd/prometheus.service.j2"
+    dest: "{{ systemd_lib_directory }}/prometheus.service"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - daemon-reload
+    - restart prometheus
+
+...

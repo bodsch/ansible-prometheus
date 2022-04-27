@@ -1,0 +1,186 @@
+
+# Settings related to the remote write feature.
+{% if prometheus_remote_write is defined and
+      prometheus_remote_write | count > 0 %}
+
+
+{% endif %}
+{#
+  a complete wallpaper with all possible configuration parameters
+remote_write:
+  [ - <remote_write> ... ]
+  # The URL of the endpoint to send samples to.
+  url: <string>
+
+  # Timeout for requests to the remote write endpoint.
+  [ remote_timeout: <duration> | default = 30s ]
+
+  # Custom HTTP headers to be sent along with each remote write request.
+  # Be aware that headers that are set by Prometheus itself can't be overwritten.
+  headers:
+    [ <string>: <string> ... ]
+
+  # List of remote write relabel configurations.
+  write_relabel_configs:
+    [ - <relabel_config> ... ]
+
+  # Name of the remote write config, which if specified must be unique among remote write configs.
+  # The name will be used in metrics and logging in place of a generated value to help users distinguish between
+  # remote write configs.
+  [ name: <string> ]
+
+  # Enables sending of exemplars over remote write. Note that exemplar storage itself must be enabled for exemplars to be scraped in the first place.
+  [ send_exemplars: <boolean> | default = false ]
+
+  # Sets the `Authorization` header on every remote write request with the
+  # configured username and password.
+  # password and password_file are mutually exclusive.
+  basic_auth:
+    [ username: <string> ]
+    [ password: <secret> ]
+    [ password_file: <string> ]
+
+  # Optional `Authorization` header configuration.
+  authorization:
+    # Sets the authentication type.
+    [ type: <string> | default: Bearer ]
+    # Sets the credentials. It is mutually exclusive with
+    # `credentials_file`.
+    [ credentials: <secret> ]
+    # Sets the credentials to the credentials read from the configured file.
+    # It is mutually exclusive with `credentials`.
+    [ credentials_file: <filename> ]
+
+  # Optionally configures AWS's Signature Verification 4 signing process to
+  # sign requests. Cannot be set at the same time as basic_auth, authorization, or oauth2.
+  # To use the default credentials from the AWS SDK, use `sigv4: {}`.
+  sigv4:
+    # The AWS region. If blank, the region from the default credentials chain
+    # is used.
+    [ region: <string> ]
+
+    # The AWS API keys. If blank, the environment variables `AWS_ACCESS_KEY_ID`
+    # and `AWS_SECRET_ACCESS_KEY` are used.
+    [ access_key: <string> ]
+    [ secret_key: <secret> ]
+
+    # Named AWS profile used to authenticate.
+    [ profile: <string> ]
+
+    # AWS Role ARN, an alternative to using AWS API keys.
+    [ role_arn: <string> ]
+
+  # Optional OAuth 2.0 configuration.
+  # Cannot be used at the same time as basic_auth, authorization, or sigv4.
+  oauth2:
+    [ <oauth2> ]
+    client_id: <string>
+    [ client_secret: <secret> ]
+
+    # Read the client secret from a file.
+    # It is mutually exclusive with `client_secret`.
+    [ client_secret_file: <filename> ]
+
+    # Scopes for the token request.
+    scopes:
+      [ - <string> ... ]
+
+    # The URL to fetch the token from.
+    token_url: <string>
+
+    # Optional parameters to append to the token URL.
+    endpoint_params:
+      [ <string>: <string> ... ]
+
+    # Configures the token request's TLS settings.
+    tls_config:
+      [ <tls_config> ]
+      # CA certificate to validate API server certificate with.
+      [ ca_file: <filename> ]
+
+      # Certificate and key files for client cert authentication to the server.
+      [ cert_file: <filename> ]
+      [ key_file: <filename> ]
+
+      # ServerName extension to indicate the name of the server.
+      # https://tools.ietf.org/html/rfc4366#section-3.1
+      [ server_name: <string> ]
+
+      # Disable validation of the server certificate.
+      [ insecure_skip_verify: <boolean> ]
+
+      # Minimum acceptable TLS version. Accepted values: TLS10 (TLS 1.0), TLS11 (TLS
+      # 1.1), TLS12 (TLS 1.2), TLS13 (TLS 1.3).
+      # If unset, Prometheus will use Go default minimum version, which is TLS 1.2.
+      # See MinVersion in https://pkg.go.dev/crypto/tls#Config.
+      [ min_version: <string> ]
+
+    # Optional proxy URL.
+    [ proxy_url: <string> ]
+
+  # Configures the remote write request's TLS settings.
+  tls_config:
+    [ <tls_config> ]
+    # CA certificate to validate API server certificate with.
+    [ ca_file: <filename> ]
+
+    # Certificate and key files for client cert authentication to the server.
+    [ cert_file: <filename> ]
+    [ key_file: <filename> ]
+
+    # ServerName extension to indicate the name of the server.
+    # https://tools.ietf.org/html/rfc4366#section-3.1
+    [ server_name: <string> ]
+
+    # Disable validation of the server certificate.
+    [ insecure_skip_verify: <boolean> ]
+
+    # Minimum acceptable TLS version. Accepted values: TLS10 (TLS 1.0), TLS11 (TLS
+    # 1.1), TLS12 (TLS 1.2), TLS13 (TLS 1.3).
+    # If unset, Prometheus will use Go default minimum version, which is TLS 1.2.
+    # See MinVersion in https://pkg.go.dev/crypto/tls#Config.
+    [ min_version: <string> ]
+
+  # Optional proxy URL.
+  [ proxy_url: <string> ]
+
+  # Configure whether HTTP requests follow HTTP 3xx redirects.
+  [ follow_redirects: <boolean> | default = true ]
+
+  # Whether to enable HTTP2.
+  [ enable_http2: <bool> | default: true ]
+
+  # Configures the queue used to write to remote storage.
+  queue_config:
+    # Number of samples to buffer per shard before we block reading of more
+    # samples from the WAL. It is recommended to have enough capacity in each
+    # shard to buffer several requests to keep throughput up while processing
+    # occasional slow remote requests.
+    [ capacity: <int> | default = 2500 ]
+    # Maximum number of shards, i.e. amount of concurrency.
+    [ max_shards: <int> | default = 200 ]
+    # Minimum number of shards, i.e. amount of concurrency.
+    [ min_shards: <int> | default = 1 ]
+    # Maximum number of samples per send.
+    [ max_samples_per_send: <int> | default = 500]
+    # Maximum time a sample will wait in buffer.
+    [ batch_send_deadline: <duration> | default = 5s ]
+    # Initial retry delay. Gets doubled for every retry.
+    [ min_backoff: <duration> | default = 30ms ]
+    # Maximum retry delay.
+    [ max_backoff: <duration> | default = 5s ]
+    # Retry upon receiving a 429 status code from the remote-write storage.
+    # This is experimental and might change in the future.
+    [ retry_on_http_429: <boolean> | default = false ]
+
+  # Configures the sending of series metadata to remote storage.
+  # Metadata configuration is subject to change at any point
+  # or be removed in future releases.
+  metadata_config:
+    # Whether metric metadata is sent to remote storage or not.
+    [ send: <boolean> | default = true ]
+    # How frequently metric metadata is sent to remote storage.
+    [ send_interval: <duration> | default = 1m ]
+    # Maximum number of samples per send.
+    [ max_samples_per_send: <int> | default = 500]
+#}

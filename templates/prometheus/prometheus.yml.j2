@@ -1,0 +1,11 @@
+---
+{{ ansible_managed | comment }}
+
+{% include('prometheus.d/global.j2') %}
+{% include('prometheus.d/alerting.j2') %}
+{% include('prometheus.d/rule_files.j2') %}
+{% include('prometheus.d/scrape_configs.j2') %}
+{% include('prometheus.d/remote_write.j2') %}
+{% include('prometheus.d/remote_read.j2') %}
+{% include('prometheus.d/storage.j2') %}
+{% include('prometheus.d/tracing.j2') %}

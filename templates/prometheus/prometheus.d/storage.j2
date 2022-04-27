@@ -1,0 +1,14 @@
+
+# Storage related settings that are runtime reloadable.
+{% if prometheus_storage is defined and
+      prometheus_storage | count > 0 %}
+
+
+{% endif %}
+{#
+  a complete wallpaper with all possible configuration parameters
+storage:
+  [ - <exemplars> ... ]
+  # Configures the maximum size of the circular buffer used to store exemplars for all series. Resizable during runtime.
+  [ max_exemplars: <int> | default = 100000 ]
+#}

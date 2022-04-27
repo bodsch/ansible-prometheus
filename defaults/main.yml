@@ -1,0 +1,52 @@
+---
+
+prometheus_version: 2.35.0
+
+# https://github.com/prometheus/prometheus/releases/download/v2.35.0/prometheus-2.35.0.linux-amd64.tar.gz
+
+prometheus_release_download_url: https://github.com/prometheus/prometheus/releases
+
+prometheus_system_user: prometheus
+prometheus_system_group: prometheus
+prometheus_config_dir: /etc/prometheus
+prometheus_data_dir: /var/lib/prometheus
+
+prometheus_direct_download: false
+
+prometheus_logging:
+  level: warn
+
+prometheus_service:
+  # See https://prometheus.io/docs/prometheus/latest/feature_flags/
+  features: []
+
+prometheus_global: {}
+
+prometheus_alerting: {}
+
+prometheus_rule_files: []
+
+prometheus_scrape_configs: []
+
+prometheus_remote_write: {}
+
+prometheus_remote_read: {}
+
+prometheus_storage: {}
+
+prometheus_tracing: {}
+
+# prometheus_web:
+#   http_listen_address: "0.0.0.0"
+#   http_listen_port: "9090"
+#   telemetry_path: "/metrics"
+#   external_url: ""
+#
+# prometheus_storage:
+#   retention: "30d"
+#   # Available since Prometheus 2.7.0
+#   # [EXPERIMENTAL] Maximum number of bytes that can be stored for blocks.
+#   # Units supported: KB, MB, GB, TB, PB.
+#   retention_size: "0"
+
+...

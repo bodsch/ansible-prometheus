@@ -1,0 +1,139 @@
+
+# Settings related to the remote read feature.
+{% if prometheus_remote_read is defined and
+      prometheus_remote_read | count > 0 %}
+
+
+{% endif %}
+
+{#
+  a complete wallpaper with all possible configuration parameters
+remote_read:
+  [ - <remote_read> ... ]
+  # The URL of the endpoint to query from.
+  url: <string>
+
+  # Name of the remote read config, which if specified must be unique among remote read configs.
+  # The name will be used in metrics and logging in place of a generated value to help users distinguish between
+  # remote read configs.
+  [ name: <string> ]
+
+  # An optional list of equality matchers which have to be
+  # present in a selector to query the remote read endpoint.
+  required_matchers:
+    [ <labelname>: <labelvalue> ... ]
+
+  # Timeout for requests to the remote read endpoint.
+  [ remote_timeout: <duration> | default = 1m ]
+
+  # Custom HTTP headers to be sent along with each remote read request.
+  # Be aware that headers that are set by Prometheus itself can't be overwritten.
+  headers:
+    [ <string>: <string> ... ]
+
+  # Whether reads should be made for queries for time ranges that
+  # the local storage should have complete data for.
+  [ read_recent: <boolean> | default = false ]
+
+  # Sets the `Authorization` header on every remote read request with the
+  # configured username and password.
+  # password and password_file are mutually exclusive.
+  basic_auth:
+    [ username: <string> ]
+    [ password: <secret> ]
+    [ password_file: <string> ]
+
+  # Optional `Authorization` header configuration.
+  authorization:
+    # Sets the authentication type.
+    [ type: <string> | default: Bearer ]
+    # Sets the credentials. It is mutually exclusive with
+    # `credentials_file`.
+    [ credentials: <secret> ]
+    # Sets the credentials to the credentials read from the configured file.
+    # It is mutually exclusive with `credentials`.
+    [ credentials_file: <filename> ]
+
+  # Optional OAuth 2.0 configuration.
+  # Cannot be used at the same time as basic_auth or authorization.
+  oauth2:
+    [ <oauth2> ]
+    client_id: <string>
+    [ client_secret: <secret> ]
+
+    # Read the client secret from a file.
+    # It is mutually exclusive with `client_secret`.
+    [ client_secret_file: <filename> ]
+
+    # Scopes for the token request.
+    scopes:
+      [ - <string> ... ]
+
+    # The URL to fetch the token from.
+    token_url: <string>
+
+    # Optional parameters to append to the token URL.
+    endpoint_params:
+      [ <string>: <string> ... ]
+
+    # Configures the token request's TLS settings.
+    tls_config:
+      [ <tls_config> ]
+      # CA certificate to validate API server certificate with.
+      [ ca_file: <filename> ]
+
+      # Certificate and key files for client cert authentication to the server.
+      [ cert_file: <filename> ]
+      [ key_file: <filename> ]
+
+      # ServerName extension to indicate the name of the server.
+      # https://tools.ietf.org/html/rfc4366#section-3.1
+      [ server_name: <string> ]
+
+      # Disable validation of the server certificate.
+      [ insecure_skip_verify: <boolean> ]
+
+      # Minimum acceptable TLS version. Accepted values: TLS10 (TLS 1.0), TLS11 (TLS
+      # 1.1), TLS12 (TLS 1.2), TLS13 (TLS 1.3).
+      # If unset, Prometheus will use Go default minimum version, which is TLS 1.2.
+      # See MinVersion in https://pkg.go.dev/crypto/tls#Config.
+      [ min_version: <string> ]
+
+    # Optional proxy URL.
+    [ proxy_url: <string> ]
+
+  # Configures the remote read request's TLS settings.
+  tls_config:
+    [ <tls_config> ]
+    # CA certificate to validate API server certificate with.
+    [ ca_file: <filename> ]
+
+    # Certificate and key files for client cert authentication to the server.
+    [ cert_file: <filename> ]
+    [ key_file: <filename> ]
+
+    # ServerName extension to indicate the name of the server.
+    # https://tools.ietf.org/html/rfc4366#section-3.1
+    [ server_name: <string> ]
+
+    # Disable validation of the server certificate.
+    [ insecure_skip_verify: <boolean> ]
+
+    # Minimum acceptable TLS version. Accepted values: TLS10 (TLS 1.0), TLS11 (TLS
+    # 1.1), TLS12 (TLS 1.2), TLS13 (TLS 1.3).
+    # If unset, Prometheus will use Go default minimum version, which is TLS 1.2.
+    # See MinVersion in https://pkg.go.dev/crypto/tls#Config.
+    [ min_version: <string> ]
+
+  # Optional proxy URL.
+  [ proxy_url: <string> ]
+
+  # Configure whether HTTP requests follow HTTP 3xx redirects.
+  [ follow_redirects: <boolean> | default = true ]
+
+  # Whether to enable HTTP2.
+  [ enable_http2: <bool> | default: true ]
+
+  # Whether to use the external labels as selectors for the remote read endpoint.
+  [ filter_external_labels: <boolean> | default = true ]
+#}

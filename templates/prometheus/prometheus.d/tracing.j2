@@ -1,0 +1,55 @@
+
+# Configures exporting traces.
+{% if prometheus_tracing is defined and
+      prometheus_tracing | count > 0 %}
+
+
+{% endif %}
+{#
+  a complete wallpaper with all possible configuration parameters
+tracing:
+# Client used to export the traces. Options are 'http' or 'grpc'.
+[ client_type: <string> | default = grpc ]
+
+# Endpoint to send the traces to. Should be provided in format <host>:<port>.
+[ endpoint: <string> ]
+
+# Sets the probability a given trace will be sampled. Must be a float from 0 through 1.
+[ sampling_fraction: <float> | default = 0 ]
+
+# If disabled, the client will use a secure connection.
+[ insecure: <boolean> | default = false ]
+
+# Key-value pairs to be used as headers associated with gRPC or HTTP requests.
+headers:
+  [ <string>: <string> ... ]
+
+# Compression key for supported compression types. Supported compression: gzip.
+[ compression: <string> ]
+
+# Maximum time the exporter will wait for each batch export.
+[ timeout: <duration> | default = 10s ]
+
+# TLS configuration.
+tls_config:
+  [ <tls_config> ]
+  # CA certificate to validate API server certificate with.
+  [ ca_file: <filename> ]
+
+  # Certificate and key files for client cert authentication to the server.
+  [ cert_file: <filename> ]
+  [ key_file: <filename> ]
+
+  # ServerName extension to indicate the name of the server.
+  # https://tools.ietf.org/html/rfc4366#section-3.1
+  [ server_name: <string> ]
+
+  # Disable validation of the server certificate.
+  [ insecure_skip_verify: <boolean> ]
+
+  # Minimum acceptable TLS version. Accepted values: TLS10 (TLS 1.0), TLS11 (TLS
+  # 1.1), TLS12 (TLS 1.2), TLS13 (TLS 1.3).
+  # If unset, Prometheus will use Go default minimum version, which is TLS 1.2.
+  # See MinVersion in https://pkg.go.dev/crypto/tls#Config.
+  [ min_version: <string> ]
+#}

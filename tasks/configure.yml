@@ -1,0 +1,48 @@
+---
+
+- name: create prometheus configuration directory
+  file:
+    path: "{{ prometheus_config_dir }}"
+    state: directory
+    owner: root
+    group: "{{ prometheus_system_group }}"
+    mode: 0770
+
+- name: create prometheus run configuration
+  template:
+    src: "prometheus.j2"
+    dest: "{{ prometheus_defaults_directory }}/prometheus"
+    force: true
+    owner: root
+    group: "{{ prometheus_system_group }}"
+    mode: 0640
+  notify:
+    - reload prometheus
+
+
+- name: create prometheus.yml
+  template:
+    src: "prometheus/prometheus.yml.j2"
+    dest: "{{ prometheus_config_dir }}/prometheus.yml"
+    force: true
+    owner: root
+    group: "{{ prometheus_system_group }}"
+    mode: 0640
+  notify:
+    - reload prometheus
+
+
+# - name: create (experimental) prometheus configuration
+#   template:
+#     src: "prometheus/config.yml.j2"
+#     dest: "{{ prometheus_config_dir }}/config.yml"
+#     force: true
+#     owner: root
+#     group: "{{ prometheus_system_group }}"
+#     mode: 0640
+#   when:
+#     - prometheus_enable_experimental
+#   notify:
+#     - restart prometheus
+
+...

@@ -1,0 +1,9 @@
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+{% if prometheus_rule_files is defined and
+      prometheus_rule_files | count > 0 %}
+rule_files:
+  {{ prometheus_rule_files | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+{% endif %}

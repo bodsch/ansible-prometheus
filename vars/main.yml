@@ -1,0 +1,153 @@
+---
+
+prometheus_main_version: "{{ prometheus_version[0:3] }}"
+
+prometheus_install_path: /usr/local/bin/prometheus/{{ prometheus_version }}
+
+prometheus_delegate_to: localhost
+
+prometheus_local_tmp_directory: "{{
+  lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
+  default(lookup('env', 'HOME') ~ '/.cache/ansible/prometheus', true) }}/{{ prometheus_version }}"
+
+prometheus_requirements:
+  - iproute2
+  - gzip
+
+prometheus_defaults_service:
+  log:
+    level: info
+    format: ""
+  features: []
+  storage:
+    tsdb:
+      path: /var/lib/prometheus
+      retention:
+        time: 15d
+        size: ""
+  web:
+    # [EXPERIMENTAL]
+    # Path to configuration file that can enable TLS or authentication.
+    config:
+      file: ""
+    console:
+      libraries: ""
+      templates: ""
+    cors:
+      origin:
+    enable_lifecycle: false
+    enable_remote_write_receiver: false
+    enable_admin_api: false
+    external_url: ""
+    listen_address: "0.0.0.0:9090"
+    max_connection: ""
+    page_title: ""
+    read_timeout: ""
+    route_prefix: ""
+    user_assets: ""
+  raw_flags: {}
+
+
+prometheus_defaults_global:
+  scrape_interval: 1m
+  scrape_timeout: 10s
+  evaluation_interval: ""
+  external_labels: {}
+  query_log_file: ""
+
+prometheus_defaults_alerting:
+  # https://prometheus.io/docs/prometheus/latest/configuration/configuration/#alert_relabel_configs
+  alert_relabel_configs:
+    source_labels: []
+    separator: ""
+    target_label: ""
+    regex: ""
+    modulus: ""
+    replacement: ""
+    action: ""
+  # https://prometheus.io/docs/prometheus/latest/configuration/configuration/#alertmanager_config
+  alertmanagers: []
+#     - scheme: http      # <scheme> | default = http
+#       timeout: ""       # <duration> | default = 10s
+#       api_version: ""   # <string> | default = v2
+#       path_prefix: "/"  # <path> | default = /
+#       basic_auth:
+#         username: ""
+#         password: ""
+#         password_file: ""
+#       authorization:
+#         type: ""        # default: Bearer
+#         credentials: ""
+#         credentials_file: ""
+#       oauth2:
+#         client_id: ""
+#         client_secret: ""
+#         client_secret_file: ""
+#         scopes: []
+#         token_url: ""
+#         endpoint_params: {}
+#         tls_config:
+#           ca_file: ""
+#           cert_file: ""
+#           key_file: ""
+#           server_name: ""
+#           insecure_skip_verify: # <boolean>
+#           # Minimum acceptable TLS version. Accepted values: TLS10 (TLS 1.0), TLS11 (TLS
+#           # 1.1), TLS12 (TLS 1.2), TLS13 (TLS 1.3).
+#           min_version: ""
+#         proxy_url: ""
+#       tls_config:
+#         ca_file: ""
+#         cert_file: ""
+#         key_file: ""
+#         server_name: ""
+#         insecure_skip_verify: "" # <boolean> ]
+#         # Minimum acceptable TLS version. Accepted values: TLS10 (TLS 1.0), TLS11 (TLS
+#         # 1.1), TLS12 (TLS 1.2), TLS13 (TLS 1.3).
+#         min_version: ""
+#       proxy_url: ""
+#       follow_redirects: ""  # <boolean> | default = true ]
+#       enable_http2: ""      # <bool> | default: true ]
+#       azure_sd_configs: {}
+#       consul_sd_configs: {}
+#       dns_sd_configs: {}
+#       ec2_sd_configs: {}
+#       eureka_sd_configs: {}
+#       file_sd_configs: {}
+#       digitalocean_sd_configs: {}
+#       docker_sd_configs: {}
+#       dockerswarm_sd_configs: {}
+#       gce_sd_configs: {}
+#       hetzner_sd_configs: {}
+#       http_sd_configs: {}
+#       kubernetes_sd_configs: {}
+#       lightsail_sd_configs: {}
+#       linode_sd_configs: {}
+#       marathon_sd_configs: {}
+#       nerve_sd_configs: {}
+#       openstack_sd_configs: {}
+#       puppetdb_sd_configs: {}
+#       scaleway_sd_configs: {}
+#       serverset_sd_configs: {}
+#       triton_sd_configs: {}
+#       uyuni_sd_configs: {}
+#       static_configs: {}
+#       relabel_configs: {}
+
+prometheus_defaults_rule_files: []
+
+prometheus_defaults_scrape_configs: []
+
+prometheus_defaults_remote_write: {}
+
+prometheus_defaults_remote_read: {}
+
+prometheus_defaults_storage: {}
+
+prometheus_defaults_tracing: {}
+
+prometheus_defaults_directory: /etc/default
+
+systemd_lib_directory: /lib/systemd/system
+
+...

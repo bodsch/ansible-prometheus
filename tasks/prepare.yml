@@ -1,0 +1,169 @@
+---
+
+- name: include OS specific configuration ({{ ansible_distribution }} ({{ ansible_os_family }}) {{ ansible_distribution_major_version }})
+  include_vars: "{{ lookup('first_found', params) }}"
+  vars:
+    params:
+      paths:
+        - "vars"
+      files:
+        # eg. debian-10 / ubuntu-20.04 / centos-8 / oraclelinux-8
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}.yml"
+        # eg. archlinux-systemd / archlinux-openrc
+        - "{{ ansible_distribution | lower }}-{{ ansible_service_mgr | lower }}.yml"
+        # eg. debian / ubuntu / centos / oraclelinux
+        - "{{ ansible_distribution | lower }}.yml"
+        # eg. redhat / debian / archlinux
+        - "{{ ansible_os_family | lower }}.yml"
+        - default.yaml
+      skip: true
+
+- name: update package cache
+  package:
+    update_cache: true
+
+- name: define delegate instance for download handling
+  set_fact:
+    prometheus_delegate_to: "{{ ansible_host }}"
+    prometheus_local_tmp_directory: "{{
+        lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
+        default('/var/cache/ansible/prometheus', true) }}/{{ prometheus_version }}"
+  when:
+    - prometheus_direct_download
+
+- name: install dependency
+  package:
+    name: "{{ prometheus_requirements }}"
+    state: present
+
+- name: detect our installation path '{{ prometheus_install_path | dirname }}'
+  stat:
+    path: "{{ prometheus_install_path | dirname }}"
+    get_checksum: false
+  register: stat_prometheus_path
+  ignore_errors: true
+
+- name: old installation
+  block:
+    - name: stop old service
+      service:
+        name: prometheus
+        state: stopped
+        enabled: false
+      notify:
+        - daemon-reload
+
+    - name: remove installed systemd unit
+      file:
+        state: absent
+        path: /etc/systemd/system/prometheus.service
+
+    - name: remove installed prometheus
+      file:
+        state: absent
+        path: "{{ stat_prometheus_path.stat.path }}"
+  when:
+    - stat_prometheus_path is defined
+    - stat_prometheus_path.stat is defined
+    - stat_prometheus_path.stat.isdir is defined
+    - not stat_prometheus_path.stat.isdir
+
+- name: flush handlers
+  meta: flush_handlers
+
+- name: detect installed prometheus binary
+  stat:
+    path: "{{ prometheus_install_path }}/prometheus"
+  register: stat_prometheus_binary
+
+- name: create download directory
+  become: false
+  delegate_to: "{{ prometheus_delegate_to }}"
+  file:
+    path: "{{ prometheus_local_tmp_directory }}"
+    state: directory
+    mode: 0750
+
+- name: user and group handling
+  block:
+    - name: create prometheus group
+      group:
+        name: "{{ prometheus_system_group }}"
+        state: present
+        system: true
+
+    - name: create prometheus user
+      user:
+        name: "{{ prometheus_system_user }}"
+        groups: "{{ prometheus_system_group }}"
+        append: true
+        shell: /usr/sbin/nologin
+        system: true
+        createhome: false
+        home: /nonexistent
+  when:
+    - prometheus_system_user != "root"
+
+- name: create install directory
+  file:
+    path: "{{ prometheus_install_path }}"
+    state: directory
+    owner: "{{ prometheus_system_user }}"
+    group: "{{ prometheus_system_group }}"
+    mode: 0755
+
+- name: fix directory rights for {{ prometheus_install_path | dirname }}
+  file:
+    path: "{{ prometheus_install_path | dirname }}"
+    state: directory
+    owner: "{{ prometheus_system_user }}"
+    group: "{{ prometheus_system_group }}"
+    mode: 0755
+    recurse: true
+
+- name: merge prometheus service configuration between defaults and custom
+  set_fact:
+    prometheus_service: "{{ prometheus_defaults_service |
+      combine( prometheus_service, recursive=True) }}"
+
+- name: merge prometheus global configuration between defaults and custom
+  set_fact:
+    prometheus_global: "{{ prometheus_defaults_global |
+      combine( prometheus_global, recursive=True) }}"
+
+- name: merge prometheus alerting configuration between defaults and custom
+  set_fact:
+    prometheus_alerting: "{{ prometheus_defaults_alerting |
+      combine( prometheus_alerting, recursive=True ) }}"
+
+- name: merge prometheus remote_write configuration between defaults and custom
+  set_fact:
+    prometheus_remote_write: "{{ prometheus_defaults_remote_write |
+      combine( prometheus_remote_write, recursive=True ) }}"
+
+- name: merge prometheus remote_read configuration between defaults and custom
+  set_fact:
+    prometheus_remote_read: "{{ prometheus_defaults_remote_read |
+      combine( prometheus_remote_read, recursive=True ) }}"
+
+- name: merge prometheus storage configuration between defaults and custom
+  set_fact:
+    prometheus_storage: "{{ prometheus_defaults_storage |
+      combine( prometheus_storage, recursive=True ) }}"
+
+- name: merge prometheus tracing configuration between defaults and custom
+  set_fact:
+    prometheus_tracing: "{{ prometheus_defaults_tracing |
+      combine( prometheus_tracing, recursive=True ) }}"
+
+- name: merge prometheus rule_files configuration between defaults and custom
+  set_fact:
+    prometheus_tracing: "{{ prometheus_defaults_rule_files |
+      union( prometheus_rule_files ) }}"
+
+- name: merge prometheus scrape_configs configuration between defaults and custom
+  set_fact:
+    prometheus_tracing: "{{ prometheus_defaults_scrape_configs |
+      union( prometheus_scrape_configs ) }}"
+
+...

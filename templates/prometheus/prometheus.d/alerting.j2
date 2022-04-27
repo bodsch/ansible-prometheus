@@ -1,0 +1,60 @@
+
+# Alerting specifies settings related to the Alertmanager.
+{% if prometheus_alerting.alert_relabel_configs is defined and
+      prometheus_alerting.alert_relabel_configs | count > 0 and
+      prometheus_alerting.alertmanagers is defined and
+      prometheus_alerting.alertmanagers | count > 0 %}
+alerting:
+  {% if prometheus_alerting.alert_relabel_configs is defined and
+        prometheus_alerting.alert_relabel_configs | count > 0 %}
+  alert_relabel_configs:
+    {% if prometheus_alerting.alert_relabel_configs.source_labels is defined and
+          prometheus_alerting.alert_relabel_configs.source_labels | type == "list" and
+          prometheus_alerting.alert_relabel_configs.source_labels | count > 0 %}
+    # The source labels select values from existing labels. Their content is concatenated
+    # using the configured separator and matched against the configured regular expression
+    # for the replace, keep, and drop actions.
+    source_labels: {{ prometheus_alerting.alert_relabel_configs.source_labels | join(', ') }}
+    {% endif %}
+    {% if prometheus_alerting.alert_relabel_configs.separator is defined and
+          prometheus_alerting.alert_relabel_configs.separator | string | length > 0 %}
+    # Separator placed between concatenated source label values.
+    separator: {{ prometheus_alerting.alert_relabel_configs.separator | default(';') }}
+    {% endif %}
+    {% if prometheus_alerting.alert_relabel_configs.target_label is defined and
+          prometheus_alerting.alert_relabel_configs.target_label | string | length > 0 %}
+    # Label to which the resulting value is written in a replace action.
+    # It is mandatory for replace actions. Regex capture groups are available.
+    target_label: {{ prometheus_alerting.alert_relabel_configs.target_label }}
+    {% endif %}
+    {% if prometheus_alerting.alert_relabel_configs.regex is defined and
+          prometheus_alerting.alert_relabel_configs.regex | string | length > 0 %}
+    # Regular expression against which the extracted value is matched.
+    # <regex> | default = (.*) ]
+    regex: {{ prometheus_alerting.alert_relabel_configs.regex }}
+    {% endif %}
+    {% if prometheus_alerting.alert_relabel_configs.modulus is defined and
+          prometheus_alerting.alert_relabel_configs.modulus | string | length > 0 %}
+    # Modulus to take of the hash of the source label values.
+    modulus: {{ prometheus_alerting.alert_relabel_configs.modulus | int }}
+    {% endif %}
+    {% if prometheus_alerting.alert_relabel_configs.replacement is defined and
+          prometheus_alerting.alert_relabel_configs.replacement | string | length > 0 %}
+    # Replacement value against which a regex replace is performed if the
+    # regular expression matches. Regex capture groups are available.
+    # [ replacement: <string> | default = $1 ] #}
+    replacement: {{ prometheus_alerting.alert_relabel_configs.replacement | default('$1') }}
+    {% endif %}
+    {% if prometheus_alerting.alert_relabel_configs.action is defined and
+          prometheus_alerting.alert_relabel_configs.action | string | length > 0 %}
+    # Action to perform based on regex matching.
+    # action: <relabel_action> | default = replace ]
+    action: {{ prometheus_alerting.alert_relabel_configs.action }}
+    {% endif %}
+  {% endif %}
+  {% if prometheus_alerting.alertmanagers is defined and
+      prometheus_alerting.alertmanagers | count > 0 %}
+  alertmanagers:
+    {{ prometheus_alerting.alertmanagers | to_nice_yaml(indent=4,sort_keys=False) | indent(4, False) }}
+  {% endif %}
+{% endif %}
