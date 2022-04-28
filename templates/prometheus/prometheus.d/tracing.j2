@@ -1,9 +1,8 @@
 
-# Configures exporting traces.
 {% if prometheus_tracing is defined and
       prometheus_tracing | count > 0 %}
-
-
+tracing:
+  {{ prometheus_tracing | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
 {% endif %}
 {#
   a complete wallpaper with all possible configuration parameters

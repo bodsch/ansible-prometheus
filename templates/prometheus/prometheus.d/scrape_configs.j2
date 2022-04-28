@@ -1,30 +1,10 @@
 
-# A scrape configuration containing exactly one endpoint to scrape:
-# Here it's Prometheus itself.
 {% if prometheus_scrape_configs is defined and
       prometheus_scrape_configs | count > 0 %}
 scrape_configs:
   {{ prometheus_scrape_configs | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
-  {# for job in prometheus_scrape_configs %}
-    {{ job | to_nice_yaml(indent=2) | indent(2, False) }}
-  # - job_name: {{ job.job_name }}
-  #   {% set _ = job.pop('job_name') %}
-  #   {{ job | to_nice_yaml(indent=4) | indent(4, False) }}
-
-  {% endfor #}
-  {#
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: "prometheus"
-
-    # metrics_path defaults to '/metrics'
-    # scheme defaults to 'http'.
-
-    static_configs:
-      - targets: ["localhost:9090"]
-  #}
 {% endif %}
 
-# A list of scrape configurations.
 {#
   a complete wallpaper with all possible configuration parameters of a single scrape job
 scrape_configs:

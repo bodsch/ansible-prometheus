@@ -19,7 +19,6 @@
   notify:
     - reload prometheus
 
-
 - name: create prometheus.yml
   template:
     src: "prometheus/prometheus.yml.j2"
@@ -31,18 +30,49 @@
   notify:
     - reload prometheus
 
+- name: create (experimental) prometheus web configuration
+  template:
+    src: "prometheus/web.yml.j2"
+    dest: "{{ prometheus_config_dir }}/web.yml"
+    force: true
+    owner: root
+    group: "{{ prometheus_system_group }}"
+    mode: 0640
+  when:
+    - prometheus_enable_experimental
+  notify:
+    - reload prometheus
 
-# - name: create (experimental) prometheus configuration
-#   template:
-#     src: "prometheus/config.yml.j2"
-#     dest: "{{ prometheus_config_dir }}/config.yml"
+- name: create static targets
+  template:
+    src: prometheus/file_sd/item.yml.j2
+    dest: "{{ prometheus_config_dir }}/file_sd/{{ item.key }}.yml"
+    force: true
+    owner: root
+    group: "{{ prometheus_system_group }}"
+    mode: 0640
+  with_dict: "{{ prometheus_file_sd_targets }}"
+  loop_control:
+    label: "{{ item.key }}.yml"
+  when:
+    - prometheus_file_sd_targets is defined
+    - prometheus_file_sd_targets | count > 0
+
+# - name: create static targets
+#   copy:
+#     content: |
+#       #jinja2: lstrip_blocks: True
+#       {{ item.value | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
+#     dest: "{{ prometheus_config_dir }}/file_sd/{{ item.key }}.yml"
 #     force: true
 #     owner: root
 #     group: "{{ prometheus_system_group }}"
 #     mode: 0640
+#   with_dict: "{{ prometheus_file_sd_targets }}"
+#   loop_control:
+#     label: "{{ item.key }}.yml"
 #   when:
-#     - prometheus_enable_experimental
-#   notify:
-#     - restart prometheus
+#     - prometheus_file_sd_targets is defined
+#     - prometheus_file_sd_targets | count > 0
 
 ...

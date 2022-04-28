@@ -1,9 +1,8 @@
 
-# Settings related to the remote read feature.
 {% if prometheus_remote_read is defined and
       prometheus_remote_read | count > 0 %}
-
-
+remote_read:
+  {{ prometheus_remote_read | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
 {% endif %}
 
 {#

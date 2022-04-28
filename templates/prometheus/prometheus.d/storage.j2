@@ -1,9 +1,8 @@
 
-# Storage related settings that are runtime reloadable.
 {% if prometheus_storage is defined and
       prometheus_storage | count > 0 %}
-
-
+storage:
+  {{ prometheus_storage | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
 {% endif %}
 {#
   a complete wallpaper with all possible configuration parameters

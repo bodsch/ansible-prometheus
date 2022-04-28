@@ -1,10 +1,10 @@
 
-# Settings related to the remote write feature.
 {% if prometheus_remote_write is defined and
       prometheus_remote_write | count > 0 %}
-
-
+remote_write:
+  {{ prometheus_remote_write | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
 {% endif %}
+
 {#
   a complete wallpaper with all possible configuration parameters
 remote_write:

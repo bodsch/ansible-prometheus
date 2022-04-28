@@ -47,7 +47,6 @@ prometheus_defaults_service:
     user_assets: ""
   raw_flags: {}
 
-
 prometheus_defaults_global:
   scrape_interval: 1m
   scrape_timeout: 10s

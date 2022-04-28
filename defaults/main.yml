@@ -11,6 +11,8 @@ prometheus_system_group: prometheus
 prometheus_config_dir: /etc/prometheus
 prometheus_data_dir: /var/lib/prometheus
 
+prometheus_enable_experimental: false
+
 prometheus_direct_download: false
 
 prometheus_logging:
@@ -35,6 +37,8 @@ prometheus_remote_read: {}
 prometheus_storage: {}
 
 prometheus_tracing: {}
+
+prometheus_file_sd_targets: {}
 
 # prometheus_web:
 #   http_listen_address: "0.0.0.0"

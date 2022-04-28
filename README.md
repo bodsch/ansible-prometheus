@@ -12,6 +12,11 @@ Ansible role to install and configure [prometheus](https://github.com/prometheus
 [releases]: https://github.com/bodsch/ansible-prometheus/releases
 
 
+##
+
+- jmespath
+
+
 ## Operating systems
 
 Tested on

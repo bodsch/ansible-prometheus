@@ -77,4 +77,22 @@
     - daemon-reload
     - restart prometheus
 
+- name: create rules directory
+  file:
+    state: directory
+    path: "{{ prometheus_config_dir }}/rules"
+    mode: 0750
+
+- name: create targets directory
+  file:
+    state: directory
+    path: "{{ prometheus_config_dir }}/targets"
+    mode: 0750
+
+- name: create file_sd directory
+  file:
+    state: directory
+    path: "{{ prometheus_config_dir }}/file_sd"
+    mode: 0750
+
 ...

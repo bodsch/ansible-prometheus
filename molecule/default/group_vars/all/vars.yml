@@ -15,6 +15,32 @@ prometheus_alerting:
   alert_relabel_configs: []
   alertmanagers: []
 
+prometheus_file_sd_targets:
+  #
+  node:
+    - targets:
+        - localhost:9100
+      labels:
+        env: test
+  sensors:
+    - labels:
+        service: sensors
+      targets:
+        - sensor-01.matrix.lan:9080  # buero
+        - sensor-02.matrix.lan:9080  # titus
+        - sensor-03.matrix.lan:9080  # esszimmer
+        - sensor-04.matrix.lan:9080@wohnzimmer
+        - sensor-05.matrix.lan:9080    # it-raum
+        - sensor-06.matrix.lan:9080@kueche
+        - sensor-07.matrix.lan:9080@bad
+
+
+#  node:
+#    - targets:
+#        - localhost:9100
+#      labels:
+#        env: test
+
 #prometheus_rule_files:
 #  - "foo.yml"
 #  - bar.json
@@ -24,15 +50,23 @@ prometheus_scrape_configs:
       - targets:
           - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9090"
   #
-  - job_name: "grafana"
+  - job_name: grafana
     static_configs:
       - targets:
-        - "127.0.0.1:3000"
-  # sensors
-  - job_name: "sensors"
+        - 127.0.0.1:3000
+  #
+  - job_name: node
     file_sd_configs:
       - files:
-        - file_sd/sensors.yaml
+          - "{{ prometheus_config_dir }}/file_sd/node1.yml"
+          - "{{ prometheus_config_dir }}/file_sd/node2.yml"
+        refresh_interval: 2m
+
+  # sensors
+  - job_name: sensors
+    file_sd_configs:
+      - files:
+        - "{{ prometheus_config_dir }}/file_sd/sensors.yml"
     relabel_configs:
       # remove port from instance name
       - source_labels:
@@ -74,10 +108,10 @@ prometheus_scrape_configs:
         replacement: it-bunker
         target_label: location
   #
-  - job_name: "kresd"
+  - job_name: kresd
     file_sd_configs:
       - files:
-        - file_sd/kresd.yaml
+        - "{{ prometheus_config_dir }}/file_sd/kresd.yml"
 
 
 

@@ -166,4 +166,18 @@
     prometheus_tracing: "{{ prometheus_defaults_scrape_configs |
       union( prometheus_scrape_configs ) }}"
 
+# -----------
+
+- name: validate file_sd config in prometheus_scrape_configs
+  set_fact:
+    missing_target_definition: "{{ prometheus_scrape_configs | validate_file_sd(prometheus_file_sd_targets) }}"
+
+- name: Fail when file_sd targets are not defined in prometheus_scrape_configs
+  debug:
+    msg: "For the following files a definition in prometheus_file_sd_targets is missing:\n
+      {{ missing_target_definition | join('\n') }}"
+  when:
+    - missing_target_definition is defined
+    - missing_target_definition | count > 0
+
 ...

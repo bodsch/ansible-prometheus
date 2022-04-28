@@ -1,10 +1,14 @@
 
-# Alerting specifies settings related to the Alertmanager.
-{% if prometheus_alerting.alert_relabel_configs is defined and
-      prometheus_alerting.alert_relabel_configs | count > 0 and
-      prometheus_alerting.alertmanagers is defined and
-      prometheus_alerting.alertmanagers | count > 0 %}
+{% if (prometheus_alerting.alert_relabel_configs is defined and
+       prometheus_alerting.alert_relabel_configs | count > 0) or
+      (prometheus_alerting.alertmanagers is defined and
+       prometheus_alerting.alertmanagers | count > 0) %}
 alerting:
+  {% if prometheus_alerting.alertmanagers is defined and
+      prometheus_alerting.alertmanagers | count > 0 %}
+  alertmanagers:
+    {{ prometheus_alerting.alertmanagers | to_nice_yaml(indent=4,sort_keys=False) | indent(4, False) }}
+  {% endif %}
   {% if prometheus_alerting.alert_relabel_configs is defined and
         prometheus_alerting.alert_relabel_configs | count > 0 %}
   alert_relabel_configs:
@@ -51,10 +55,5 @@ alerting:
     # action: <relabel_action> | default = replace ]
     action: {{ prometheus_alerting.alert_relabel_configs.action }}
     {% endif %}
-  {% endif %}
-  {% if prometheus_alerting.alertmanagers is defined and
-      prometheus_alerting.alertmanagers | count > 0 %}
-  alertmanagers:
-    {{ prometheus_alerting.alertmanagers | to_nice_yaml(indent=4,sort_keys=False) | indent(4, False) }}
   {% endif %}
 {% endif %}
