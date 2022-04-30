@@ -2,8 +2,6 @@
 
 prometheus_version: 2.35.0
 
-# https://github.com/prometheus/prometheus/releases/download/v2.35.0/prometheus-2.35.0.linux-amd64.tar.gz
-
 prometheus_release_download_url: https://github.com/prometheus/prometheus/releases
 
 prometheus_system_user: prometheus
@@ -15,12 +13,7 @@ prometheus_enable_experimental: false
 
 prometheus_direct_download: false
 
-prometheus_logging:
-  level: warn
-
-prometheus_service:
-  # See https://prometheus.io/docs/prometheus/latest/feature_flags/
-  features: []
+prometheus_service: {}
 
 prometheus_global: {}
 

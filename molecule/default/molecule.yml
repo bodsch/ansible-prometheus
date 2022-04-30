@@ -18,6 +18,8 @@ platforms:
     docker_host: "${DOCKER_HOST:-unix://run/docker.sock}"
     privileged: true
     pre_build_image: true
+    published_ports:
+      - 9090:9090
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
