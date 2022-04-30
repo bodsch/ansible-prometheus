@@ -1,8 +1,5 @@
 ---
 
-- name: restart prometheus if needed
-  meta: flush_handlers
-
 - name: ensure prometheus is enabled on boot
   become: true
   service:

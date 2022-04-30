@@ -17,6 +17,7 @@
     group: "{{ prometheus_system_group }}"
     mode: 0640
   notify:
+    - validate config
     - reload prometheus
 
 - name: create prometheus.yml
@@ -28,6 +29,7 @@
     group: "{{ prometheus_system_group }}"
     mode: 0640
   notify:
+    - validate config
     - reload prometheus
 
 - name: create (experimental) prometheus web configuration
@@ -57,22 +59,11 @@
   when:
     - prometheus_file_sd_targets is defined
     - prometheus_file_sd_targets | count > 0
+  notify:
+    - validate config
+    - reload prometheus
 
-# - name: create static targets
-#   copy:
-#     content: |
-#       #jinja2: lstrip_blocks: True
-#       {{ item.value | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
-#     dest: "{{ prometheus_config_dir }}/file_sd/{{ item.key }}.yml"
-#     force: true
-#     owner: root
-#     group: "{{ prometheus_system_group }}"
-#     mode: 0640
-#   with_dict: "{{ prometheus_file_sd_targets }}"
-#   loop_control:
-#     label: "{{ item.key }}.yml"
-#   when:
-#     - prometheus_file_sd_targets is defined
-#     - prometheus_file_sd_targets | count > 0
+- name: restart prometheus if needed
+  meta: flush_handlers
 
 ...

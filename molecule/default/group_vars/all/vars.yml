@@ -4,7 +4,7 @@ prometheus_version: latest
 
 prometheus_service:
   log:
-    level: debug
+    level: info
   web:
     listen_address: "0.0.0.0:9090"
 

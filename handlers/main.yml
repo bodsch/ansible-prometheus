@@ -12,7 +12,9 @@
     name: prometheus
     state: reloaded
 
-# - name: validate config
+- name: validate config
+  command: |
+    /usr/bin/promtool check config {{ prometheus_config_dir }}/prometheus.yml
 
 - name: daemon-reload
   become: true
