@@ -12,7 +12,7 @@ EnvironmentFile  = {{ prometheus_defaults_directory }}/prometheus
 User             = {{ prometheus_system_user }}
 Group            = {{ prometheus_system_group }}
 
-ExeceStartPre    = /usr/bin/promtool check config {{ prometheus_config_dir }}/prometheus.yml
+ExecStartPre     = /usr/bin/promtool check config {{ prometheus_config_dir }}/prometheus.yml
 
 ExecReload       = /bin/kill -HUP $MAINPID
 ExecStart        = /usr/bin/prometheus $OPTIONS
