@@ -280,6 +280,36 @@ prometheus_file_sd_targets:
 ```
 ---
 
+
+## Federation
+
+As you already guess in this way your Prometheus will collect only time series whose metric names have `dht_` , `node_` or `container_` prefix.
+
+And all jobs with `sensors` tag.
+
+
+Config for federate service:
+
+```yaml
+prometheus_scrape_configs:
+  - job_name: federate
+    scrape_interval: 15s
+
+    honor_labels: true
+    metrics_path: '/federate'
+
+    params:
+      'match[]':
+        - 'up'
+        - '{ __name__ =~ "dht_.* | node_.* | container_.*" }'
+        - '{ job = "sensors" }'
+
+    static_configs:
+      - targets:
+        - 'instance:9090'
+```
+
+
 ## Author and License
 
 - Bodo Schulz

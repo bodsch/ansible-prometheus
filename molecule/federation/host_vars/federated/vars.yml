@@ -1,0 +1,31 @@
+---
+
+prometheus_version: latest
+
+prometheus_service:
+  log:
+    level: info
+  web:
+    listen_address: "0.0.0.0:9090"
+
+
+prometheus_scrape_configs:
+  - job_name: federate
+    scrape_interval: 15s
+
+    honor_labels: true
+    metrics_path: '/federate'
+
+    params:
+      'match[]':
+        #- '{ job = "prometheus" }'
+        #- '{ __name__ =~ "job:.*" }'
+        - 'up'
+        - '{ __name__ =~ "dht_.* | node_.* | container_.*" }'
+        - '{ job = "sensors" }'
+
+    static_configs:
+      - targets:
+        - 'instance:9090'
+
+...
