@@ -83,7 +83,7 @@ prometheus_file_sd_targets: {}
 ### `prometheus_service`
 
 Configures the command line parameters of Prometheus.  
-These are stored in the file `/etc/defaults/prometheus` and used by the start script.  
+These are stored in the file `/etc/conf.d/prometheus` or `/etc/defaults/prometheus` and used by the start script.  
 All parameters can be called via `prometheus --help`.
 
 
@@ -283,7 +283,8 @@ prometheus_file_sd_targets:
 
 ## Federation
 
-As you already guess in this way your Prometheus will collect only time series whose metric names have `dht_` , `node_` or `container_` prefix.
+As you already guess in this way your Prometheus will collect only time series whose metric names 
+have `dht_` , `node_` or `container_` prefix.
 
 And all jobs with `sensors` tag.
 
