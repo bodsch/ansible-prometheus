@@ -75,9 +75,10 @@ stop() {
 
 reload() {
   ebegin "Reloading ${SVCNAME}"
-
-  start-stop-daemon --signal SIGUSR1 \
-    --exec "${command}" --pidfile "${pidfile}"
-
-  eend $? "Failed to stop ${SVCNAME}"
+  if [ ! -r "${pidfile}" ]; then
+    eend 1 "automount not running"
+  else
+    kill -s HUP $(cat "${pidfile}") 2> /dev/null
+    eend $?
+  fi
 }
