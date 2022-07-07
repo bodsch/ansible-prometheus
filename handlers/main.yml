@@ -21,5 +21,7 @@
   systemd:
     daemon_reload: true
     force: true
+  when:
+    - ansible_service_mgr | lower == "systemd"
 
 ...

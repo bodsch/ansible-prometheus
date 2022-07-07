@@ -1,5 +1,6 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
 ---
-{{ ansible_managed | comment }}
+# {{ ansible_managed }}
 
 {% include('prometheus.d/global.j2') %}
 {% include('prometheus.d/alerting.j2') %}
