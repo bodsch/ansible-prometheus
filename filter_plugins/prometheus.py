@@ -46,7 +46,10 @@ class FilterModule(object):
 
         for f in config_files:
             name, extension = os.path.basename(f).split(".")
-            if name not in targets or extension != "yml":
+
+            display.v("    - name: {} / extenstion {}".format(name, extension))
+
+            if name not in targets or extension not in ["yml", "yaml"]:
                 result.append(os.path.basename(f))
 
         display.v("{}".format(result))
