@@ -15,6 +15,8 @@
         - "{{ ansible_distribution | lower }}.yml"
         # eg. redhat / debian / archlinux
         - "{{ ansible_os_family | lower }}.yml"
+        # artixlinux
+        - "{{ ansible_os_family | lower | replace(' ', '') }}.yml"
         - default.yaml
       skip: true
 
@@ -35,6 +37,8 @@
   package:
     name: "{{ prometheus_requirements }}"
     state: present
+  when:
+    - prometheus_requirements | default([]) | count > 0
 
 - block:
     - name: get latest release
@@ -153,50 +157,17 @@
     group: root
     mode: 0775
 
-- name: merge prometheus service configuration between defaults and custom
+- name: merge prometheus configuration between defaults and custom
   set_fact:
-    prometheus_service: "{{ prometheus_defaults_service |
-      combine( prometheus_service, recursive=True) }}"
-
-- name: merge prometheus global configuration between defaults and custom
-  set_fact:
-    prometheus_global: "{{ prometheus_defaults_global |
-      combine( prometheus_global, recursive=True) }}"
-
-- name: merge prometheus alerting configuration between defaults and custom
-  set_fact:
-    prometheus_alerting: "{{ prometheus_defaults_alerting |
-      combine( prometheus_alerting, recursive=True ) }}"
-
-- name: merge prometheus remote_write configuration between defaults and custom
-  set_fact:
-    prometheus_remote_write: "{{ prometheus_defaults_remote_write |
-      combine( prometheus_remote_write, recursive=True ) }}"
-
-- name: merge prometheus remote_read configuration between defaults and custom
-  set_fact:
-    prometheus_remote_read: "{{ prometheus_defaults_remote_read |
-      combine( prometheus_remote_read, recursive=True ) }}"
-
-- name: merge prometheus storage configuration between defaults and custom
-  set_fact:
-    prometheus_storage: "{{ prometheus_defaults_storage |
-      combine( prometheus_storage, recursive=True ) }}"
-
-- name: merge prometheus tracing configuration between defaults and custom
-  set_fact:
-    prometheus_tracing: "{{ prometheus_defaults_tracing |
-      combine( prometheus_tracing, recursive=True ) }}"
-
-- name: merge prometheus rule_files configuration between defaults and custom
-  set_fact:
-    prometheus_rule_files: "{{ prometheus_defaults_rule_files |
-      union( prometheus_rule_files ) }}"
-
-- name: merge prometheus scrape_configs configuration between defaults and custom
-  set_fact:
-    prometheus_scrape_configs: "{{ prometheus_defaults_scrape_configs |
-      union( prometheus_scrape_configs ) }}"
+    prometheus_service: "{{ prometheus_defaults_service | combine( prometheus_service, recursive=True) }}"
+    prometheus_global: "{{ prometheus_defaults_global | combine( prometheus_global, recursive=True) }}"
+    prometheus_alerting: "{{ prometheus_defaults_alerting | combine( prometheus_alerting, recursive=True ) }}"
+    prometheus_remote_write: "{{ prometheus_defaults_remote_write | combine( prometheus_remote_write, recursive=True ) }}"
+    prometheus_remote_read: "{{ prometheus_defaults_remote_read | combine( prometheus_remote_read, recursive=True ) }}"
+    prometheus_storage: "{{ prometheus_defaults_storage | combine( prometheus_storage, recursive=True ) }}"
+    prometheus_tracing: "{{ prometheus_defaults_tracing | combine( prometheus_tracing, recursive=True ) }}"
+    prometheus_rule_files: "{{ prometheus_defaults_rule_files | union( prometheus_rule_files ) }}"
+    prometheus_scrape_configs: "{{ prometheus_defaults_scrape_configs | union( prometheus_scrape_configs ) }}"
 
 # -----------
 

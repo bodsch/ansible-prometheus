@@ -48,8 +48,6 @@ stop_pre() {
 start() {
   ebegin "Starting ${SVCNAME}"
 
-#     --chdir /usr/share/prometheus/web/ui/ \
-
   start-stop-daemon --start \
     --background \
     --exec "${command}" \
