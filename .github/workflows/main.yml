@@ -29,8 +29,8 @@ jobs:
         image:
           - archlinux:latest
         ansible-version:
-          - '4.1.0'
-          - '5.1.0'
+          - '5.1'
+          - '6.1'
 
     steps:
       - name: check out the codebase.
@@ -69,8 +69,8 @@ jobs:
           - debian:11
           - ubuntu:20.04
         ansible-version:
-          - '4.1.0'
-          - '5.1.0'
+          - '5.1'
+          - '6.1'
 
     steps:
       - name: check out the codebase.
