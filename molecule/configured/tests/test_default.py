@@ -181,7 +181,7 @@ def test_open_port(host, get_vars):
     if isinstance(prometheus_service, dict):
         prometheus_web = prometheus_service.get("web", {})
 
-        listen_address = prometheus_web.get("listen_address", "127.0.0.1:9090")
+        listen_address = prometheus_web.get("listen_address")
     else:
         listen_address = "0.0.0.0:9090"
 

@@ -10,8 +10,6 @@
 
 - name: install
   include_tasks: install.yml
-  #when:
-  #  - not stat_prometheus_binary.stat.exists
 
 - name: configure
   include_tasks: configure.yml
