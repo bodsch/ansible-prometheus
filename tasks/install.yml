@@ -3,6 +3,7 @@
 - name: detect binary file for prometheus
   become: false
   delegate_to: "{{ prometheus_delegate_to }}"
+  run_once: "{{ 'false' if prometheus_direct_download else 'true' }}"
   stat:
     path: "{{ prometheus_local_tmp_directory }}/prometheus-{{ prometheus_version }}.linux-amd64/prometheus"
   register: stat_file_binary

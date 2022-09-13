@@ -4,16 +4,18 @@
     - name: get checksum list
       set_fact:
         __prometheus_checksums: "{{ lookup('url', 'https://github.com/prometheus/prometheus/releases/download/v' + prometheus_version + '/sha256sums.txt', wantlist=True) | list }}"
-      run_once: true
 
     - name: get checksum for {{ go_arch }} architecture
       set_fact:
         __prometheus_checksum: "{{ __prometheus_checksums | prometheus_checksum('linux', go_arch) }}"
+  become: false
   delegate_to: localhost
+  run_once: true
 
 - name: download prometheus binary archive
   become: false
   delegate_to: "{{ prometheus_delegate_to }}"
+  run_once: "{{ 'false' if prometheus_direct_download else 'true' }}"
   get_url:
     url: "{{ prometheus_release_download_url }}/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
     dest: "{{ prometheus_local_tmp_directory }}/prometheus-linux-amd64.tar.gz"
@@ -27,6 +29,7 @@
 - name: extract prometheus archive
   become: false
   delegate_to: "{{ prometheus_delegate_to }}"
+  run_once: "{{ 'false' if prometheus_direct_download else 'true' }}"
   unarchive:
     src: "{{ prometheus_local_tmp_directory }}/prometheus-linux-amd64.tar.gz"
     dest: "{{ prometheus_local_tmp_directory }}"
