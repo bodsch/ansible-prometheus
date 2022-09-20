@@ -8,7 +8,8 @@
     path: "{{ prometheus_local_tmp_directory }}/prometheus-{{ prometheus_version }}.linux-amd64/prometheus"
   register: stat_file_binary
 
-- block:
+- name: propagate files
+  block:
     - name: propagate prometheus binaries
       copy:
         src: "{{ prometheus_local_tmp_directory }}/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
@@ -21,30 +22,31 @@
         - prometheus
         - promtool
 
-    - name: make files executable
-      file:
-        path: "{{ prometheus_install_path }}/{{ item }}"
-        mode: 0755
+    - name: propagate official console templates
+      copy:
+        src: "{{ prometheus_local_tmp_directory }}/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}/"
+        dest: "{{ prometheus_config_dir }}/{{ item }}/"
+        mode: 0644
         owner: "{{ prometheus_system_user }}"
         group: "{{ prometheus_system_group }}"
+        remote_src: "{{ 'true' if prometheus_direct_download else 'false' }}"
       loop:
-        - prometheus
-        - promtool
+        - console_libraries
+        - consoles
+      notify:
+        - reload prometheus
   when:
     - stat_file_binary.stat.exists
 
-- name: propagate official console templates
-  copy:
-    src: "{{ prometheus_local_tmp_directory }}/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}/"
-    dest: "{{ prometheus_config_dir }}/{{ item }}/"
-    mode: 0644
+- name: make files executable
+  file:
+    path: "{{ prometheus_install_path }}/{{ item }}"
+    mode: 0755
     owner: "{{ prometheus_system_user }}"
     group: "{{ prometheus_system_group }}"
   loop:
-    - console_libraries
-    - consoles
-  notify:
-    - reload prometheus
+    - prometheus
+    - promtool
 
 - name: create local facts
   template:
