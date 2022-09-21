@@ -1,0 +1,8 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+---
+# {{ ansible_managed }}
+
+groups:
+- name: ansible managed alert rules
+  rules:
+  {{ prometheus_alert_rules | to_nice_yaml(indent=2,sort_keys=False) | indent(2,False) }}

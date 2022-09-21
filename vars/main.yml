@@ -136,6 +136,8 @@ prometheus_defaults_alerting:
 
 prometheus_defaults_rule_files: []
 
+prometheus_defaults_alert_rules: []
+
 prometheus_defaults_scrape_configs: []
 
 prometheus_defaults_remote_write: {}
