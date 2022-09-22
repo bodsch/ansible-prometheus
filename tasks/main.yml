@@ -1,24 +1,20 @@
 ---
 
-- name: d
-  debug:
-    msg: "{{ prometheus_alerting.alertmanagers | validate_alertmanagers }}"
-
 - name: prepare
   include_tasks: prepare.yml
 
-#- name: download
-#  include_tasks: download.yml
-#  when:
-#    - not stat_prometheus_binary.stat.exists
+- name: download
+  include_tasks: download.yml
+  when:
+    - not stat_prometheus_binary.stat.exists
 
-#- name: install
-#  include_tasks: install.yml
+- name: install
+  include_tasks: install.yml
 
 - name: configure
   include_tasks: configure.yml
 
-#- name: service
-#  include_tasks: service.yml
+- name: service
+  include_tasks: service.yml
 
 ...

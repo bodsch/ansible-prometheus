@@ -23,8 +23,8 @@ prometheus_alerting:
       timeout: 10s
       # api_version: ""
       path_prefix: "/"
-      # file_sd_configs:
-      #   [ - <file_sd_config> ... ]
+      #file_sd_configs:
+      #  - "file_sd_config"
       static_configs:
         - targets:
             - localhost
@@ -33,6 +33,8 @@ prometheus_alerting:
           # Labels assigned to all metrics scraped from the targets.
           labels:
             can_ignored: true
+
+      #consul_sd_configs: {}
 
 
 
