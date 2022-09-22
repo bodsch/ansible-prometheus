@@ -108,6 +108,9 @@ prometheus_defaults_alerting:
 #       proxy_url: ""
 #       follow_redirects: ""  # <boolean> | default = true ]
 #       enable_http2: ""      # <bool> | default: true ]
+#       static_configs: {}
+#       relabel_configs: {}
+#       ------------------------------------------------------
 #       azure_sd_configs: {}
 #       consul_sd_configs: {}
 #       dns_sd_configs: {}
@@ -131,8 +134,6 @@ prometheus_defaults_alerting:
 #       serverset_sd_configs: {}
 #       triton_sd_configs: {}
 #       uyuni_sd_configs: {}
-#       static_configs: {}
-#       relabel_configs: {}
 
 prometheus_defaults_rule_files: []
 

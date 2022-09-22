@@ -1,6 +1,6 @@
 ---
 
-prometheus_version: latest
+prometheus_version: 2.37.1
 
 prometheus_service:
   log:
@@ -14,10 +14,28 @@ prometheus_global:
   external_labels:
     environment: MOLECULE
     production: not
+  query_log_file: ""
 
 prometheus_alerting:
-  alert_relabel_configs: []
-  alertmanagers: []
+  alert_relabel_configs: {}
+  alertmanagers:
+    - scheme: http
+      timeout: 10s
+      # api_version: ""
+      path_prefix: "/"
+      # file_sd_configs:
+      #   [ - <file_sd_config> ... ]
+      static_configs:
+        - targets:
+            - localhost
+            - remote_1
+            - remote_2
+          # Labels assigned to all metrics scraped from the targets.
+          labels:
+            can_ignored: true
+
+
+
 
 prometheus_file_sd_targets:
   #
@@ -39,15 +57,7 @@ prometheus_file_sd_targets:
         service: dns
       targets:
         - ns.matrix.lan:8453
-#  node:
-#    - targets:
-#        - localhost:9100
-#      labels:
-#        env: test
 
-#prometheus_rule_files:
-#  - "foo.yml"
-#  - bar.json
 prometheus_scrape_configs:
   - job_name: prometheus
     static_configs:
@@ -63,7 +73,6 @@ prometheus_scrape_configs:
     file_sd_configs:
       - files:
           - "{{ prometheus_config_dir }}/file_sd/node.yml"
-          # - "{{ prometheus_config_dir }}/file_sd/node2.yml"
         refresh_interval: 2m
 
   # sensors
@@ -116,7 +125,5 @@ prometheus_scrape_configs:
     file_sd_configs:
       - files:
         - "{{ prometheus_config_dir }}/file_sd/kresd.yml"
-
-
 
 ...

@@ -20,7 +20,7 @@ prometheus_global: {}
 prometheus_alerting: {}
 
 prometheus_rule_files:
-  - prometheus/rules/*.rules
+  - "{{ prometheus_config_dir }}/rules/*.rules"
 
 prometheus_alert_rules:
   - alert: Watchdog
@@ -41,8 +41,8 @@ prometheus_scrape_configs:
       - source_labels:
           - __address__
         target_label: instance
-        regex: ([^:]+)(:[0-9]+)?
-        replacement: ${1}
+        regex: "([^:]+)(:[0-9]+)?"
+        replacement: "${1}"
 
 prometheus_remote_write: {}
 

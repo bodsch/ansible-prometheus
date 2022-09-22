@@ -1,15 +1,119 @@
-
+#jinja2: trim_blocks: True, lstrip_blocks: True
 {% if (prometheus_alerting.alert_relabel_configs is defined and
        prometheus_alerting.alert_relabel_configs | count > 0) or
       (prometheus_alerting.alertmanagers is defined and
        prometheus_alerting.alertmanagers | count > 0) %}
 alerting:
   {% if prometheus_alerting.alertmanagers is defined and
-      prometheus_alerting.alertmanagers | count > 0 %}
+        prometheus_alerting.alertmanagers | type == "list" and
+        prometheus_alerting.alertmanagers | count > 0 %}
   alertmanagers:
-    {{ prometheus_alerting.alertmanagers | to_nice_yaml(indent=4,sort_keys=False) | indent(4, False) }}
+    # {{ prometheus_alerting.alertmanagers | type }}
+    {#
+
+
+    #}
+    {% for mng in prometheus_alerting.alertmanagers %}
+    # {{ mng | type }}
+    -
+      {% if mng.scheme is defined and
+            mng.scheme in ["http", "https"] %}
+      scheme: {{ mng.scheme }}
+      {% endif %}
+      {% if mng.follow_redirects is defined and
+            mng.follow_redirects | string | length > 0 %}
+      follow_redirects: {{ mng.follow_redirects | bool | ternary('true', 'false') }}
+      {% endif %}
+      {% if mng.enable_http2 is defined and
+            mng.enable_http2 | string | length > 0 %}
+      enable_http2: {{ mng.enable_http2 | bool | ternary('true', 'false') }}
+      {% endif %}
+      {% if mng.timeout is defined and
+            mng.timeout | string | length > 0 %}
+      timeout: {{ mng.timeout }}
+      {% endif %}
+      {% if mng.api_version is defined and
+            mng.api_version | string | length > 0 %}
+      api_version: {{ mng.api_version }}
+      {% endif %}
+      {% if mng.path_prefix is defined and
+            mng.path_prefix | string | length > 0 %}
+      path_prefix: {{ mng.path_prefix }}
+      {% endif %}
+      {% if mng.basic_auth is defined and
+            mng.basic_auth | string | length > 0 %}
+      basic_auth:
+        {{ mng.basic_auth | to_nice_yaml(indent=8,sort_keys=False) | indent(2, False) }}
+      {% endif %}
+      {% if mng.authorization is defined and
+            mng.authorization | string | length > 0 %}
+      authorization:
+        {{ mng.authorization | to_nice_yaml(indent=8,sort_keys=False) | indent(2, False) }}
+      {% endif %}
+      {% if mng.oauth2 is defined and
+            mng.oauth2 | string | length > 0 %}
+      oauth2:
+        {{ mng.oauth2 | to_nice_yaml(indent=8,sort_keys=False) | indent(2, False) }}
+      {% endif %}
+      {% if mng.tls_config is defined and
+            mng.tls_config | string | length > 0 %}
+      tls_config:
+        {{ mng.tls_config | to_nice_yaml(indent=8,sort_keys=False) | indent(2, False) }}
+      {% endif %}
+      {% if mng.relabel_configs is defined and
+            mng.relabel_configs | string | length > 0 %}
+      relabel_configs:
+        {{ mng.relabel_configs | to_nice_yaml(indent=8,sort_keys=False) | indent(2, False) }}
+      {% endif %}
+      {% if mng.static_configs is defined and
+            mng.static_configs | type == "list" and
+            mng.static_configs | count > 0 %}
+      static_configs:
+        {% for static in mng.static_configs %}
+          {% if static.targets is defined and
+                static.targets | type == "list" and
+                static.targets | count > 0 %}
+      - targets:
+            {% for target in static.targets %}
+        - {{ target }}
+            {% endfor %}
+          {% endif %}
+          {% if static.labels is defined and
+                static.labels | type == "dict" and
+                static.labels | count > 0 %}
+        labels:
+          {{ static.labels | to_nice_yaml(indent=10,sort_keys=False) | indent(4, False) }}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      {# service discoveries #}
+      {% if mng.file_sd_configs is defined and
+            mng.file_sd_configs | string | length > 0 %}
+      file_sd_configs:
+        {{ mng.file_sd_configs | to_nice_yaml(indent=8,sort_keys=False) | indent(2, False) }}
+      {% endif %}
+      {% if mng.http_sd_configs is defined and
+            mng.http_sd_configs | string | length > 0 %}
+      http_sd_configs:
+        {{ mng.http_sd_configs | to_nice_yaml(indent=8,sort_keys=False) | indent(2, False) }}
+      {% endif %}
+
+{#
+      {% if %}
+
+
+      {% endif %}
+#}
+
+    {% endfor %}
+    {#
+    #-------------------------------------------------------------------------------------
+    {{ prometheus_alerting.alertmanagers | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
+    #}
   {% endif %}
+
   {% if prometheus_alerting.alert_relabel_configs is defined and
+        prometheus_alerting.alert_relabel_configs | type == "dict" and
         prometheus_alerting.alert_relabel_configs | count > 0 %}
   alert_relabel_configs:
     {% if prometheus_alerting.alert_relabel_configs.source_labels is defined and
