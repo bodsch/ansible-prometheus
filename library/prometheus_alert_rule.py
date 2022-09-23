@@ -17,6 +17,7 @@ from ansible.module_utils.basic import AnsibleModule
 class PrometheusAlertRule(object):
     """
     """
+
     def __init__(self, module):
         """
         """
@@ -34,7 +35,6 @@ class PrometheusAlertRule(object):
 
         self.checksum_directory = f"{Path.home()}/.ansible/cache/prometheus_alert_rules"
 
-
     def run(self):
         """
         """
@@ -45,11 +45,11 @@ class PrometheusAlertRule(object):
         )
 
         properties = dict(
-          alert = self.alert,
-          for_clause= self.for_clause,
-          expression = self.expression,
-          labels = self.labels,
-          annotations = self.annotations
+            alert = self.alert,
+            for_clause= self.for_clause,
+            expression = self.expression,
+            labels = self.labels,
+            annotations = self.annotations
         )
 
         if not os.path.exists(self.rules_directory):
@@ -68,9 +68,6 @@ class PrometheusAlertRule(object):
         if self.state == "absent":
             changed = self._delete_rule(self.name)
 
-            if e_changed or p_changed:
-                changed = True
-
         if changed:
             res = {}
             state = f"rule {self.name} successful written"
@@ -81,7 +78,6 @@ class PrometheusAlertRule(object):
             )
 
             result_state.append(res)
-
 
         # define changed for the running tasks
         # migrate a list of dict into dict
@@ -98,7 +94,6 @@ class PrometheusAlertRule(object):
 
         return result
 
-
     def _write_rule(self, name, properties = {}):
         """
         """
@@ -113,8 +108,8 @@ class PrometheusAlertRule(object):
     def _delete_rule(self, name):
         """
         """
-        data_file     = os.path.join(self.rules_directory, name, f"{name}.rules")
-        checksum_file = os.path.join(self.checksum_directory, name, f"{name}.rules.checksum")
+        # data_file     = os.path.join(self.rules_directory, name, f"{name}.rules")
+        # checksum_file = os.path.join(self.checksum_directory, name, f"{name}.rules.checksum")
 
         pass
 
@@ -157,7 +152,6 @@ class PrometheusAlertRule(object):
 
         password_hash = hashlib.sha256(password_bytes)
         return password_hash.hexdigest()
-
 
     def __template(self, data):
         """
