@@ -17,11 +17,10 @@ prometheus_global:
   query_log_file: ""
 
 prometheus_alerting:
-  alert_relabel_configs: {}
   alertmanagers:
     - scheme: http
       timeout: 10s
-      # api_version: ""
+      api_version: ""
       path_prefix: "/"
       #file_sd_configs:
       #  - "file_sd_config"
@@ -33,11 +32,6 @@ prometheus_alerting:
           # Labels assigned to all metrics scraped from the targets.
           labels:
             can_ignored: true
-
-      #consul_sd_configs: {}
-
-
-
 
 prometheus_file_sd_targets:
   #
@@ -127,5 +121,30 @@ prometheus_scrape_configs:
     file_sd_configs:
       - files:
         - "{{ prometheus_config_dir }}/file_sd/kresd.yml"
+
+
+prometheus_alert_rules:
+  watchdog:
+    alert: Watchdog
+    expr: vector(1)
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      description: "This is an alert meant to ensure that the entire alerting pipeline is functional.\nThis alert is always firing, therefore it should always be firing in Alertmanager\nand always fire against a receiver. There are integrations with various notification\nmechanisms that send a notification when this alert is not firing. For example the\n\"DeadMansSnitch\" integration in PagerDuty."
+      summary: 'Ensure entire alerting pipeline is functional'
+
+  instance_down:
+    alert: InstanceDown
+    # Condition for alerting
+    expr: up == 0
+    for: 1m
+    # Annotation - additional informational labels to store more information
+    annotations:
+      title: '{% raw %}Instance {{ $labels.instance }} down{% endraw %}'
+      description: '{% raw %}{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.{% endraw %}'
+    # Labels - additional labels to be attached to the alert
+    labels:
+      severity: 'critical'
 
 ...

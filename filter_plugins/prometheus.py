@@ -20,6 +20,7 @@ class FilterModule(object):
             'validate_file_sd': self.validate_file_sd,
             'validate_alertmanager_endpoints': self.validate_alertmanager_endpoints,
             'prometheus_checksum': self.checksum,
+            'remove_empty_elements': self.remove_empty_elements,
         }
 
     def validate_file_sd(self, data, targets):
@@ -56,24 +57,6 @@ class FilterModule(object):
         display.v("{}".format(result))
 
         return result
-
-    def checksum(self, data, os, arch):
-        """
-        """
-        checksum = None
-
-        if isinstance(data, list):
-            # filter OS
-            # linux = [x for x in data if re.search(r".*prometheus-.*.{}.*.tar.gz".format(os), x)]
-            # filter OS and ARCH
-            checksum = [x for x in data if re.search(r".*prometheus-.*.{}-{}.tar.gz".format(os, arch), x)][0]
-
-        if isinstance(checksum, str):
-            checksum = checksum.split(" ")[0]
-
-        # display.v("= checksum: {}".format(checksum))
-
-        return checksum
 
     def validate_alertmanager_endpoints(self, data):
         """
@@ -116,3 +99,36 @@ class FilterModule(object):
                         return [False, sd_configs, supported]
 
         return [False, sd_configs, supported]
+
+    def checksum(self, data, os, arch):
+        """
+        """
+        checksum = None
+
+        if isinstance(data, list):
+            # filter OS
+            # linux = [x for x in data if re.search(r".*prometheus-.*.{}.*.tar.gz".format(os), x)]
+            # filter OS and ARCH
+            checksum = [x for x in data if re.search(r".*prometheus-.*.{}-{}.tar.gz".format(os, arch), x)][0]
+
+        if isinstance(checksum, str):
+            checksum = checksum.split(" ")[0]
+
+        # display.v("= checksum: {}".format(checksum))
+
+        return checksum
+
+    def remove_empty_elements(self, data):
+        """
+        """
+        data_copy = data.copy()
+
+        if isinstance(data_copy, dict):
+            """
+            """
+            result = {k: v for k, v in data_copy.items() if v}
+
+            display.v("= result: {}".format(result))
+
+            return result
+

@@ -1,8 +1,62 @@
 #jinja2: trim_blocks: True, lstrip_blocks: True
 ---
 # {{ ansible_managed }}
-
+{% if prometheus_alert_rules is defined and
+      prometheus_alert_rules | type == "list" and
+      prometheus_alert_rules | count > 0 %}
 groups:
 - name: ansible managed alert rules
   rules:
+  {% for rule in prometheus_alert_rules %}
+    # {{ rule | type }}
+    # {{ rule }}
+    - alert: {{ rule.alert | default('') }}
+{#
+    {% if rule.for is defined and rule.for | string | length > 0 %}
+      for: {{ rule.for }}
+    {% endif %}
+    {% if rule.expr is defined and rule.expr | string | length > 0 %}
+      expr: {{ rule.expr }}
+    {% endif %}
+    {% if rule.labels is defined and
+          rule.labels | type == "dict" and
+          rule.labels | count > 0 %}
+      labels:
+        {{ rule.labels | to_nice_yaml(indent=6,sort_keys=False) | indent(4, False) }}
+    {% endif %}
+    {% if rule.annotations is defined and
+          rule.annotations | type == "dict" and
+          rule.annotations | count > 0 %}
+      annotations:
+      {% if rule.annotations.title is defined %}
+        title: {{ rule.annotations.title }}
+      {% endif %}
+      {% if rule.annotations.description is defined %}
+        description: {{ rule.annotations.description }}
+      {% endif %}
+      {% if rule.annotations.summary is defined %}
+        summary: {{ rule.annotations.summary }}
+      {% endif %}
+    {% endif %}
+#}
+  {% endfor %}
+
   {{ prometheus_alert_rules | to_nice_yaml(indent=2,sort_keys=False) | indent(2,False) }}
+
+{% endif %}
+
+{#
+  - alert: InstanceDown
+    # Condition for alerting
+    expr: up == 0
+    for: 1m
+    # Annotation - additional informational labels to store more information
+    annotations:
+      title: 'Instance {{ $labels.instance }} down'
+      description: '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.'
+    # Labels - additional labels to be attached to the alert
+    labels:
+      severity: 'critical'
+
+#}
+

@@ -107,6 +107,12 @@
     path: "{{ prometheus_install_path }}/prometheus"
   register: stat_prometheus_binary
 
+- name: d
+  debug:
+    msg:
+      - "{{ prometheus_install_path }}/prometheus"
+      - "{{ stat_prometheus_binary.stat.exists }}"
+
 - name: create download directory
   become: false
   delegate_to: "{{ prometheus_delegate_to }}"
@@ -191,13 +197,6 @@
     - name: validate alertmanager configs
       set_fact:
         validated_endpoints: "{{ prometheus_alerting.alertmanagers | validate_alertmanager_endpoints }}"
-
-    - name: d
-      debug:
-        msg:
-          - "{{ validated_endpoints[0] }}"
-          - "{{ validated_endpoints[1] }}"
-          - "{{ validated_endpoints[2] }}"
 
     - name: Fail when the endpoints not present or not supported
       fail:

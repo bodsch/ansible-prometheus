@@ -1,4 +1,3 @@
-#jinja2: trim_blocks: True, lstrip_blocks: True
 {% if (prometheus_alerting.alert_relabel_configs is defined and
        prometheus_alerting.alert_relabel_configs | count > 0) or
       (prometheus_alerting.alertmanagers is defined and
@@ -8,18 +7,10 @@ alerting:
         prometheus_alerting.alertmanagers | type == "list" and
         prometheus_alerting.alertmanagers | count > 0 %}
   alertmanagers:
-    # {{ prometheus_alerting.alertmanagers | type }}
     {#
-
-
     #}
     {% for mng in prometheus_alerting.alertmanagers %}
-    # {{ mng | type }}
-    -
-      {% if mng.scheme is defined and
-            mng.scheme in ["http", "https"] %}
-      scheme: {{ mng.scheme }}
-      {% endif %}
+    - scheme: {{ mng.scheme | default('http') }}
       {% if mng.follow_redirects is defined and
             mng.follow_redirects | string | length > 0 %}
       follow_redirects: {{ mng.follow_redirects | bool | ternary('true', 'false') }}
@@ -97,24 +88,16 @@ alerting:
       http_sd_configs:
         {{ mng.http_sd_configs | to_nice_yaml(indent=8,sort_keys=False) | indent(2, False) }}
       {% endif %}
-
-{#
-      {% if %}
-
-
-      {% endif %}
-#}
-
     {% endfor %}
     {#
     #-------------------------------------------------------------------------------------
     {{ prometheus_alerting.alertmanagers | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
     #}
   {% endif %}
-
   {% if prometheus_alerting.alert_relabel_configs is defined and
         prometheus_alerting.alert_relabel_configs | type == "dict" and
-        prometheus_alerting.alert_relabel_configs | count > 0 %}
+        prometheus_alerting.alert_relabel_configs | remove_empty_elements | count > 0 %}
+
   alert_relabel_configs:
     {% if prometheus_alerting.alert_relabel_configs.source_labels is defined and
           prometheus_alerting.alert_relabel_configs.source_labels | type == "list" and
@@ -150,7 +133,7 @@ alerting:
           prometheus_alerting.alert_relabel_configs.replacement | string | length > 0 %}
     # Replacement value against which a regex replace is performed if the
     # regular expression matches. Regex capture groups are available.
-    # [ replacement: <string> | default = $1 ] #}
+    # [ replacement: <string> | default = $1 ]
     replacement: {{ prometheus_alerting.alert_relabel_configs.replacement | default('$1') }}
     {% endif %}
     {% if prometheus_alerting.alert_relabel_configs.action is defined and
@@ -160,4 +143,5 @@ alerting:
     action: {{ prometheus_alerting.alert_relabel_configs.action }}
     {% endif %}
   {% endif %}
+
 {% endif %}
