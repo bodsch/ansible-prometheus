@@ -5,6 +5,9 @@ __metaclass__ = type
 
 import os
 import re
+import json
+import base64
+
 from ansible.utils.display import Display
 
 display = Display()
@@ -21,6 +24,8 @@ class FilterModule(object):
             'validate_alertmanager_endpoints': self.validate_alertmanager_endpoints,
             'prometheus_checksum': self.checksum,
             'remove_empty_elements': self.remove_empty_elements,
+            # 'raw_encode': self.raw_encode,
+            'jinja_encode': self.jinja_encode,
         }
 
     def validate_file_sd(self, data, targets):
@@ -73,23 +78,23 @@ class FilterModule(object):
             "serverset_sd_configs", "triton_sd_configs", "uyuni_sd_configs", "static_configs",
         ]
 
-        present = []
+        sd_configs = []
 
         if isinstance(data, list):
             sd_configs = [x for x in data[0] if re.search(r".*sd_configs|static_configs$", x)]
 
             # display.v(f"  - sd_configs: {sd_configs}")
 
-            sd_are_known = len( set(sd_configs).intersection(known_sd_configs))
+            sd_are_known = len(set(sd_configs).intersection(known_sd_configs))
 
             if sd_are_known > 0:
                 """
                   well, we found a services discovery in the know array
                 """
                 # display.v(f"    known     {sd_configs}")
-                if len( set(sd_configs).intersection(supported) ) > 0:
+                if len(set(sd_configs).intersection(supported)) > 0:
                     """
-                      and, the are supported! \m/
+                      and, the are supported!
                     """
                     # display.v(f"    supported {sd_configs}")
 
@@ -132,3 +137,32 @@ class FilterModule(object):
 
             return result
 
+    # def raw_encode(self, data):
+    #     """
+    #     """
+    #     display.v(f"= data: {data}")
+    #
+    #     if isinstance(data, dict):
+    #         data = json.dumps(data, sort_keys=True).encode('utf-8')
+    #     else:
+    #         data = data.encode('utf-8')
+    #
+    #     # display.v(f"= data: {data}")
+    #     result = base64.standard_b64encode(data)
+    #
+    #     display.v(f"= result: {result}")
+    #
+    #     return result
+
+    def jinja_encode(self, data, part):
+        """
+        """
+        if isinstance(part, dict):
+            data = json.dumps(part, sort_keys=True).encode('utf-8')
+        else:
+            data = part.encode('utf-8')
+
+        result = base64.standard_b64encode(data)
+        # display.v(f"= result: {result}")
+
+        return result

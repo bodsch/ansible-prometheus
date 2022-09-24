@@ -1,35 +1,20 @@
 ---
 
-- name: test
-  prometheus_alert_rule:
-    state: present
-    name: watchdog
-    alert: Watchdog
-    for: 10m
-    expression: vector(1)
-    labels:
-      severity: warning
-    annotations:
-      title: '{% raw %}Instance {{ $labels.instance }} down{% endraw %}'
-      description: "This is an alert meant to ensure that the entire alerting pipeline is functional.\nThis alert is always firing, therefore it should always be firing in Alertmanager\nand always fire against a receiver. There are integrations with various notification\nmechanisms that send a notification when this alert is not firing. For example the\n\"DeadMansSnitch\" integration in PagerDuty."
-      summary: 'Ensure entire alerting pipeline is functional'
-
-
 - name: prepare
   include_tasks: prepare.yml
 
-# - name: download
-#   include_tasks: download.yml
-#   when:
-#     - not stat_prometheus_binary.stat.exists
-#
-# - name: install
-#   include_tasks: install.yml
+- name: download
+  include_tasks: download.yml
+  when:
+    - not stat_prometheus_binary.stat.exists
+
+- name: install
+  include_tasks: install.yml
 
 - name: configure
   include_tasks: configure.yml
 
-# - name: service
-#   include_tasks: service.yml
+- name: service
+  include_tasks: service.yml
 
 ...

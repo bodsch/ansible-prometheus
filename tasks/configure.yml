@@ -1,70 +1,75 @@
 ---
 
-# - name: create prometheus configuration directory
-#   file:
-#     path: "{{ prometheus_config_dir }}"
-#     state: directory
-#     owner: root
-#     group: "{{ prometheus_system_group }}"
-#     mode: 0770
-#
-# - name: create prometheus.yml
-#   template:
-#     src: prometheus/prometheus.yml.j2
-#     dest: "{{ prometheus_config_dir }}/prometheus.yml"
-#     force: true
-#     owner: root
-#     group: "{{ prometheus_system_group }}"
-#     mode: 0640
-#   notify:
-#     - validate config
-#     - reload prometheus
-#
-# - name: create (experimental) prometheus web configuration
-#   template:
-#     src: prometheus/web.yml.j2
-#     dest: "{{ prometheus_config_dir }}/web.yml"
-#     force: true
-#     owner: root
-#     group: "{{ prometheus_system_group }}"
-#     mode: 0640
-#   when:
-#     - prometheus_enable_experimental
-#   notify:
-#     - reload prometheus
-#
-# - name: create static targets
-#   template:
-#     src: prometheus/file_sd/item.yml.j2
-#     dest: "{{ prometheus_config_dir }}/file_sd/{{ item.key }}.yml"
-#     force: true
-#     owner: root
-#     group: "{{ prometheus_system_group }}"
-#     mode: 0640
-#   with_dict: "{{ prometheus_file_sd_targets }}"
-#   loop_control:
-#     label: "{{ item.key }}.yml"
-#   when:
-#     - prometheus_file_sd_targets is defined
-#     - prometheus_file_sd_targets | count > 0
-#   notify:
-#     - validate config
-#     - reload prometheus
+- name: create prometheus configuration directory
+  file:
+    path: "{{ prometheus_config_dir }}"
+    state: directory
+    owner: root
+    group: "{{ prometheus_system_group }}"
+    mode: 0770
 
-- name: create alerting rules
+- name: create prometheus.yml
   template:
-    src: prometheus/rules/ansible_managed.rules.j2
-    dest: "{{ prometheus_config_dir }}/rules/ansible_managed.rules"
+    src: prometheus/prometheus.yml.j2
+    dest: "{{ prometheus_config_dir }}/prometheus.yml"
+    force: true
     owner: root
     group: "{{ prometheus_system_group }}"
     mode: 0640
-    validate: "{{ prometheus_install_path }}/promtool check rules %s"
+  notify:
+    - validate config
+    - reload prometheus
+
+- name: create (experimental) prometheus web configuration
+  template:
+    src: prometheus/web.yml.j2
+    dest: "{{ prometheus_config_dir }}/web.yml"
+    force: true
+    owner: root
+    group: "{{ prometheus_system_group }}"
+    mode: 0640
+  when:
+    - prometheus_enable_experimental
+  notify:
+    - reload prometheus
+
+- name: create static targets
+  template:
+    src: prometheus/file_sd/item.yml.j2
+    dest: "{{ prometheus_config_dir }}/file_sd/{{ item.key }}.yml"
+    force: true
+    owner: root
+    group: "{{ prometheus_system_group }}"
+    mode: 0640
+  with_dict: "{{ prometheus_file_sd_targets }}"
+  loop_control:
+    label: "{{ item.key }}.yml"
+  when:
+    - prometheus_file_sd_targets is defined
+    - prometheus_file_sd_targets | count > 0
+  notify:
+    - validate config
+    - reload prometheus
+
+- name: create alerting rules
+  prometheus_alert_rule:
+    state: "{{ item.value.state | default('present') }}"
+    name: "{{ item.key }}"
+    alert: "{{ item.value.alert }}"
+    for_clause: "{{ item.value.for }}"
+    expression: "{{ item.value.expr }}"
+    labels: "{{ item.value.labels }}"
+    annotations: "{{ item.value.annotations | default({}) }}"
+    # validate: "{{ prometheus_install_path }}/promtool check rules %s"
+  loop: "{{ prometheus_alert_rules | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify:
+    - validate config
+    - reload prometheus
   when:
     - prometheus_alert_rules is defined
     - prometheus_alert_rules | count > 0
-  #notify:
-  #  - validate config
-  #  - reload prometheus
 
 - name: restart prometheus if needed
   meta: flush_handlers

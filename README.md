@@ -67,6 +67,8 @@ prometheus_alerting: {}
 
 prometheus_rule_files: []
 
+prometheus_alert_rules: {}
+
 prometheus_scrape_configs: []
 
 prometheus_remote_write: {}
@@ -161,6 +163,72 @@ alerting:
   alertmanagers:
     [ - <alertmanager_config> ... ]
 ```
+
+#### example
+
+Currently only `static_config` is supported!  
+If another service discopvery should be supported, please write an issue or submit a pull request!
+
+```yaml
+prometheus_alerting:
+  alertmanagers:
+    - scheme: http
+      timeout: 10s
+      api_version: ""
+      path_prefix: "/"
+      static_configs:
+        - targets:
+            - localhost
+          labels:
+            can_ignored: true
+```
+
+##### `prometheus_alert_rules`
+
+All rules that can trigger an alarm are defined under `prometheus_alert_rules`.  
+Each rule is stored in a separate file and can be deactivated individually. 
+
+**ATTENTION: There is one special feature to be observed with the rules:**
+
+Prometheus allows the use of templates (e.g. `{{ $labels.instance }}` ).  
+However, these templates collide with the jinja2 templates of Ansible.  
+To avoid this problem, you can include your Prometheus templates in a `jinja_encode()` filter.
+
+A corresponding example is visible below.
+
+```yaml
+prometheus_alert_rules:
+  watchdog:
+    state: present
+    alert: Watchdog
+    expr: vector(1)
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      description: |
+        This is an alert meant to ensure that the entire alerting pipeline is functional.
+        This alert is always firing, therefore it should always be firing in Alertmanager
+        and always fire against a receiver.
+        There are integrations with various notification mechanisms that send a notification when this alert is not firing.
+        For example the
+
+        "DeadMansSnitch" integration in PagerDuty.
+
+      summary: 'Ensure entire alerting pipeline is functional'
+
+  instance_down:
+    state: absent
+    alert: InstanceDown
+    expr: up == 0
+    for: 1m
+    annotations:
+      title: "{{ '' | jinja_encode('Instance {{ $labels.instance }} down') }}"
+      description: "{{ '' | jinja_encode( '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.' ) }}"
+    labels:
+      severity: 'critical'
+```
+
 
 ### `prometheus_rule_files`
 

@@ -23,13 +23,22 @@ prometheus_rule_files:
   - "{{ prometheus_config_dir }}/rules/*.rules"
 
 prometheus_alert_rules:
-  - alert: Watchdog
+  watchdog:
+    alert: Watchdog
     expr: vector(1)
     for: 10m
     labels:
-      severity: warning
+      severity: information
     annotations:
-      description: "This is an alert meant to ensure that the entire alerting pipeline is functional.\nThis alert is always firing, therefore it should always be firing in Alertmanager\nand always fire against a receiver. There are integrations with various notification\nmechanisms that send a notification when this alert is not firing. For example the\n\"DeadMansSnitch\" integration in PagerDuty."
+      description: |
+        This is an alert meant to ensure that the entire alerting pipeline is functional.
+        This alert is always firing, therefore it should always be firing in Alertmanager
+        and always fire against a receiver.
+        There are integrations with various notification mechanisms that send a notification when this alert is not firing.
+        For example the
+
+        "DeadMansSnitch" integration in PagerDuty.
+
       summary: 'Ensure entire alerting pipeline is functional'
 
 prometheus_scrape_configs:

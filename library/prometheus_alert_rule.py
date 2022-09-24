@@ -8,6 +8,8 @@ from __future__ import absolute_import, division, print_function
 import os
 import hashlib
 import json
+import base64
+import binascii
 
 from pathlib import Path
 
@@ -31,9 +33,24 @@ class PrometheusAlertRule(object):
         self.for_clause = module.params.get("for_clause")
         self.expression = module.params.get("expression")
         self.labels = module.params.get("labels")
-        self.annotations = module.params.get("annotations")
+        annotations = module.params.get("annotations")
 
         self.checksum_directory = f"{Path.home()}/.ansible/cache/prometheus_alert_rules"
+
+        annotations_title = annotations.get('title', None)
+        annotations_description = annotations.get('description', None)
+        annotations_summary = annotations.get('summary', None)
+
+        self.annotations = dict()
+
+        if annotations_title and len(annotations_title) != 0:
+            self.annotations['title'] = self.is_base64(annotations_title)
+
+        if annotations_description and len(annotations_description) != 0:
+            self.annotations['description'] = self.is_base64(annotations_description)  # base64.standard_b64decode(annotations_description).decode('utf-8')
+
+        if annotations_summary and len(annotations_summary) != 0:
+            self.annotations['summary'] = self.is_base64(annotations_summary)  # base64.standard_b64decode(annotations_summary).decode('utf-8')
 
     def run(self):
         """
@@ -65,19 +82,30 @@ class PrometheusAlertRule(object):
         if self.state == "present":
             changed = self._write_rule(self.name, properties)
 
+            if changed:
+                res = {}
+                state = f"rule {self.name} successful written."
+
+                res[self.name] = dict(
+                    # changed=True,
+                    state=state
+                )
+
+                result_state.append(res)
+
         if self.state == "absent":
             changed = self._delete_rule(self.name)
 
-        if changed:
-            res = {}
-            state = f"rule {self.name} successful written"
+            if changed:
+                res = {}
+                state = f"rule {self.name} successful removed."
 
-            res[self.name] = dict(
-                # changed=True,
-                state=state
-            )
+                res[self.name] = dict(
+                    # changed=True,
+                    state=state
+                )
 
-            result_state.append(res)
+                result_state.append(res)
 
         # define changed for the running tasks
         # migrate a list of dict into dict
@@ -108,10 +136,17 @@ class PrometheusAlertRule(object):
     def _delete_rule(self, name):
         """
         """
-        # data_file     = os.path.join(self.rules_directory, name, f"{name}.rules")
-        # checksum_file = os.path.join(self.checksum_directory, name, f"{name}.rules.checksum")
+        data_file     = os.path.join(self.rules_directory, name, f"{name}.rules")
+        checksum_file = os.path.join(self.checksum_directory, name, f"{name}.rules.checksum")
 
-        pass
+        if os.path.exists(data_file):
+            os.remove(data_file)
+            if os.path.exists(checksum_file):
+                os.remove(checksum_file)
+
+            return True
+
+        return False
 
     def __write_file(self, data, data_file, checksum_file):
         """
@@ -127,9 +162,9 @@ class PrometheusAlertRule(object):
 
         data_up2date = (_old_checksum == checksum)
 
-        self.module.log(msg=f" - new  checksum '{checksum}'")
-        self.module.log(msg=f" - curr checksum '{_old_checksum}'")
-        self.module.log(msg=f" - up2date       '{data_up2date}'")
+        # self.module.log(msg=f" - new  checksum '{checksum}'")
+        # self.module.log(msg=f" - curr checksum '{_old_checksum}'")
+        # self.module.log(msg=f" - up2date       '{data_up2date}'")
 
         if data_up2date:
             return False
@@ -213,6 +248,16 @@ groups:
             return True
         else:
             return False
+
+    def is_base64(self, sb):
+        """
+        """
+        try:
+            data = base64.b64decode(sb, validate=True).decode('utf-8')
+        except binascii.Error:
+            data = sb
+
+        return data
 
 
 # ===========================================
