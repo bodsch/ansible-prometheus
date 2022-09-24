@@ -5,6 +5,9 @@ __metaclass__ = type
 
 import os
 import re
+import json
+import base64
+
 from ansible.utils.display import Display
 
 display = Display()
@@ -18,7 +21,11 @@ class FilterModule(object):
     def filters(self):
         return {
             'validate_file_sd': self.validate_file_sd,
+            'validate_alertmanager_endpoints': self.validate_alertmanager_endpoints,
             'prometheus_checksum': self.checksum,
+            'remove_empty_elements': self.remove_empty_elements,
+            # 'raw_encode': self.raw_encode,
+            'jinja_encode': self.jinja_encode,
         }
 
     def validate_file_sd(self, data, targets):
@@ -56,6 +63,48 @@ class FilterModule(object):
 
         return result
 
+    def validate_alertmanager_endpoints(self, data):
+        """
+        """
+        # display.v(f"validate_alertmanager_endpoints({data})")
+
+        supported = ["static_configs"]
+
+        known_sd_configs = [
+            "azure_sd_configs", "consul_sd_configs", "dns_sd_configs", "ec2_sd_configs", "eureka_sd_configs", "file_sd_configs",
+            "digitalocean_sd_configs", "docker_sd_configs", "dockerswarm_sd_configs", "gce_sd_configs", "hetzner_sd_configs",
+            "http_sd_configs", "kubernetes_sd_configs", "lightsail_sd_configs", "linode_sd_configs", "marathon_sd_configs",
+            "nerve_sd_configs", "nerve_sd_configs", "openstack_sd_configs", "puppetdb_sd_configs", "scaleway_sd_configs",
+            "serverset_sd_configs", "triton_sd_configs", "uyuni_sd_configs", "static_configs",
+        ]
+
+        sd_configs = []
+
+        if isinstance(data, list):
+            sd_configs = [x for x in data[0] if re.search(r".*sd_configs|static_configs$", x)]
+
+            # display.v(f"  - sd_configs: {sd_configs}")
+
+            sd_are_known = len(set(sd_configs).intersection(known_sd_configs))
+
+            if sd_are_known > 0:
+                """
+                  well, we found a services discovery in the know array
+                """
+                # display.v(f"    known     {sd_configs}")
+                if len(set(sd_configs).intersection(supported)) > 0:
+                    """
+                      and, the are supported!
+                    """
+                    # display.v(f"    supported {sd_configs}")
+
+                    if len(sd_configs) == len(supported):
+                        return [True, sd_configs, supported]
+                    else:
+                        return [False, sd_configs, supported]
+
+        return [False, sd_configs, supported]
+
     def checksum(self, data, os, arch):
         """
         """
@@ -73,3 +122,47 @@ class FilterModule(object):
         # display.v("= checksum: {}".format(checksum))
 
         return checksum
+
+    def remove_empty_elements(self, data):
+        """
+        """
+        data_copy = data.copy()
+
+        if isinstance(data_copy, dict):
+            """
+            """
+            result = {k: v for k, v in data_copy.items() if v}
+
+            display.v("= result: {}".format(result))
+
+            return result
+
+    # def raw_encode(self, data):
+    #     """
+    #     """
+    #     display.v(f"= data: {data}")
+    #
+    #     if isinstance(data, dict):
+    #         data = json.dumps(data, sort_keys=True).encode('utf-8')
+    #     else:
+    #         data = data.encode('utf-8')
+    #
+    #     # display.v(f"= data: {data}")
+    #     result = base64.standard_b64encode(data)
+    #
+    #     display.v(f"= result: {result}")
+    #
+    #     return result
+
+    def jinja_encode(self, data, part):
+        """
+        """
+        if isinstance(part, dict):
+            data = json.dumps(part, sort_keys=True).encode('utf-8')
+        else:
+            data = part.encode('utf-8')
+
+        result = base64.standard_b64encode(data)
+        # display.v(f"= result: {result}")
+
+        return result

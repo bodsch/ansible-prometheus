@@ -19,7 +19,27 @@ prometheus_global: {}
 
 prometheus_alerting: {}
 
-prometheus_rule_files: []
+prometheus_rule_files:
+  - "{{ prometheus_config_dir }}/rules/*.rules"
+
+prometheus_alert_rules:
+  watchdog:
+    alert: Watchdog
+    expr: vector(1)
+    for: 10m
+    labels:
+      severity: information
+    annotations:
+      description: |
+        This is an alert meant to ensure that the entire alerting pipeline is functional.
+        This alert is always firing, therefore it should always be firing in Alertmanager
+        and always fire against a receiver.
+        There are integrations with various notification mechanisms that send a notification when this alert is not firing.
+        For example the
+
+        "DeadMansSnitch" integration in PagerDuty.
+
+      summary: 'Ensure entire alerting pipeline is functional'
 
 prometheus_scrape_configs:
   - job_name: prometheus
@@ -30,8 +50,8 @@ prometheus_scrape_configs:
       - source_labels:
           - __address__
         target_label: instance
-        regex: ([^:]+)(:[0-9]+)?
-        replacement: ${1}
+        regex: "([^:]+)(:[0-9]+)?"
+        replacement: "${1}"
 
 prometheus_remote_write: {}
 

@@ -107,6 +107,12 @@
     path: "{{ prometheus_install_path }}/prometheus"
   register: stat_prometheus_binary
 
+- name: d
+  debug:
+    msg:
+      - "{{ prometheus_install_path }}/prometheus"
+      - "{{ stat_prometheus_binary.stat.exists }}"
+
 - name: create download directory
   become: false
   delegate_to: "{{ prometheus_delegate_to }}"
@@ -185,5 +191,28 @@
   when:
     - missing_target_definition is defined
     - missing_target_definition | count > 0
+
+- name: alertmanager endpoints
+  block:
+    - name: validate alertmanager configs
+      set_fact:
+        validated_endpoints: "{{ prometheus_alerting.alertmanagers | validate_alertmanager_endpoints }}"
+
+    - name: Fail when the endpoints not present or not supported
+      fail:
+        msg: "The Alertmanager endpoint ar not valid!\nPlease check your config!\n
+             Currently supported endpoints are:\n
+              - {{ validated_endpoints[2] | join('\n - ') }}\n
+             found endpoints:\n
+              - {{ validated_endpoints[1] | default(['']) | join('\n - ') }}\n"
+      when:
+        - validated_endpoints is defined
+        - validated_endpoints[0] is defined
+        - not validated_endpoints[0]
+
+  when:
+    - prometheus_alerting is defined
+    - prometheus_alerting.alertmanagers is defined
+    - prometheus_alerting.alertmanagers | count > 0
 
 ...
