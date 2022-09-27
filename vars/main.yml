@@ -13,6 +13,7 @@ prometheus_local_tmp_directory: "{{
 prometheus_requirements:
   - iproute2
   - gzip
+  - python3-jinja2
 
 prometheus_defaults_service:
   log:
