@@ -154,13 +154,15 @@ class FilterModule(object):
     #
     #     return result
 
-    def jinja_encode(self, data, part):
+    def jinja_encode(self, data):
         """
         """
-        if isinstance(part, dict):
-            data = json.dumps(part, sort_keys=True).encode('utf-8')
+        # display.v(f"jinja_encode({data})")
+
+        if isinstance(data, dict):
+            data = json.dumps(data, sort_keys=True).encode('utf-8')
         else:
-            data = part.encode('utf-8')
+            data = data.encode('utf-8')
 
         result = base64.standard_b64encode(data)
         # display.v(f"= result: {result}")

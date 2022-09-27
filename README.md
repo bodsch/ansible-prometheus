@@ -192,7 +192,7 @@ Each rule is stored in a separate file and can be deactivated individually.
 
 Prometheus allows the use of templates (e.g. `{{ $labels.instance }}` ).  
 However, these templates collide with the jinja2 templates of Ansible.  
-To avoid this problem, you can include your Prometheus templates in a `jinja_encode()` filter.
+To avoid this problem, you can use the `b64encode` filter for your Prometheus templates.
 
 A corresponding example is visible below.
 
@@ -222,11 +222,21 @@ prometheus_alert_rules:
     alert: InstanceDown
     expr: up == 0
     for: 1m
-    annotations:
-      title: "{{ '' | jinja_encode('Instance {{ $labels.instance }} down') }}"
-      description: "{{ '' | jinja_encode( '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.' ) }}"
     labels:
-      severity: 'critical'
+      severity: critical
+    annotations:
+      title: "{{ 'Instance {{ $labels.instance }} down' | b64encode }}"
+      description: "{{ '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.' | b64encode }}"
+
+  prometheus_job_missing:
+    alert: PrometheusJobMissing
+    expr: "{{ 'absent(up{job=\"prometheus\"})' | b64encode }}"
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: "{{ 'Prometheus job missing (instance {{ $labels.instance }})' | b64encode }}"
+      description: "{{ 'A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}' | b64encode }}"
 ```
 
 
