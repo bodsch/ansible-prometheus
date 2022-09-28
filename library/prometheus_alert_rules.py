@@ -6,12 +6,14 @@
 
 from __future__ import absolute_import, division, print_function
 import os
+# import sys
 import hashlib
 import json
 import base64
 import binascii
 
 from pathlib import Path
+from json.decoder import JSONDecodeError
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -27,10 +29,20 @@ class PrometheusAlertRules(object):
 
         self.state = module.params.get("state")
 
+        # self.module.log(msg=f" - '{sys.version_info}")
+
         self.rules_directory = module.params.get("rules_directory")
         rules = module.params.get("rules")
         rules = self.is_base64(rules)
-        self.rules = json.loads(rules)
+
+        try:
+            self.rules = json.loads(rules)
+        except ValueError as e:  # includes simplejson.decoder.JSONDecodeError
+            self.module.log(msg=f"ValueError - '{e}'")
+        except JSONDecodeError as e:
+            self.module.log(msg=f"JSONDecodeError - '{e}'")
+        except TypeError as e:
+            self.module.log(msg=f"TypeError - '{e}'")
 
         self.checksum_directory = f"{Path.home()}/.ansible/cache/prometheus_alert_rules"
 

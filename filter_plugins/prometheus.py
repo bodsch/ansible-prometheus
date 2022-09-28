@@ -137,34 +137,16 @@ class FilterModule(object):
 
             return result
 
-    # def raw_encode(self, data):
-    #     """
-    #     """
-    #     display.v(f"= data: {data}")
-    #
-    #     if isinstance(data, dict):
-    #         data = json.dumps(data, sort_keys=True).encode('utf-8')
-    #     else:
-    #         data = data.encode('utf-8')
-    #
-    #     # display.v(f"= data: {data}")
-    #     result = base64.standard_b64encode(data)
-    #
-    #     display.v(f"= result: {result}")
-    #
-    #     return result
-
     def jinja_encode(self, data):
         """
         """
         # display.v(f"jinja_encode({data})")
-
         if isinstance(data, dict):
             data = json.dumps(data, sort_keys=True).encode('utf-8')
         else:
             data = data.encode('utf-8')
 
-        result = base64.standard_b64encode(data)
+        result = base64.b64encode(data).decode('utf-8')
         # display.v(f"= result: {result}")
 
         return result
