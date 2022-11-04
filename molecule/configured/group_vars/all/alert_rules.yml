@@ -1,57 +1,60 @@
 ---
-
 prometheus_alert_rules:
-  watchdog:
-    alert: Watchdog
-    expr: vector(1)
-    for: 10m
-    labels:
-      severity: information
-    annotations:
-      description: |
-        This is an alert meant to ensure that the entire alerting pipeline is functional.
-        This alert is always firing, therefore it should always be firing in Alertmanager
-        and always fire against a receiver.
-        There are integrations with various notification mechanisms that send a notification when this alert is not firing.
-        For example the
+  - name: ops-rules
+    rules:
+      watchdog:
+        alert: Watchdog
+        expr: vector(1)
+        for: 10m
+        labels:
+          severity: information
+        annotations:
+          description: |
+            This is an alert meant to ensure that the entire alerting pipeline is functional.
+            This alert is always firing, therefore it should always be firing in Alertmanager
+            and always fire against a receiver.
+            There are integrations with various notification mechanisms that send a notification when this alert is not firing.
+            For example the
 
-        "DeadMansSnitch" integration in PagerDuty.
+            "DeadMansSnitch" integration in PagerDuty.
 
-      summary: 'Ensure entire alerting pipeline is functional'
+          summary: 'Ensure entire alerting pipeline is functional'
+      #
+      instance_down:
+        # state: absent
+        alert: InstanceDown
+        # Condition for alerting
+        expr: up == 0
+        for: 1m
+        # Annotation - additional informational labels to store more information
+        annotations:
+          title: "{{ 'Instance {{ $labels.instance }} down' | b64encode }}"
+          description: "{{ '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.' | b64encode }}"
+        # Labels - additional labels to be attached to the alert
+        labels:
+          severity: 'critical'
 
-  instance_down:
-    state: absent
-    alert: InstanceDown
-    # Condition for alerting
-    expr: up == 0
-    for: 1m
-    # Annotation - additional informational labels to store more information
-    annotations:
-      title: "{{ 'Instance {{ $labels.instance }} down' | b64encode }}"
-      description: "{{ '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.' | b64encode }}"
-    # Labels - additional labels to be attached to the alert
-    labels:
-      severity: 'critical'
+  - name: prometheus-rules
+    rules:
+      prometheus_job_missing:
+        # state: absent
+        alert: PrometheusJobMissing
+        expr: "{{ 'absent(up{job=\"prometheus\"})' | b64encode }}"
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ 'Prometheus job missing (instance {{ $labels.instance }})' | b64encode }}"
+          description: "{{ 'A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}' | b64encode }}"
 
-  prometheus_job_missing:
-    # state: absent
-    alert: PrometheusJobMissing
-    expr: "{{ 'absent(up{job=\"prometheus\"})' | b64encode }}"
-    for: 0m
-    labels:
-      severity: warning
-    annotations:
-      summary: "{{ 'Prometheus job missing (instance {{ $labels.instance }})' | b64encode }}"
-      description: "{{ 'A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}' | b64encode }}"
-
-  prometheus_connection_to_alertmanager:
-    alert: PrometheusNotConnectedToAlertmanager
-    expr: prometheus_notifications_alertmanagers_discovered < 1
-    for: 0m
-    labels:
-      severity: critical
-    annotations:
-      summary: "{{ 'Prometheus not connected to alertmanager (instance {{ $labels.instance }})' | b64encode }}"
-      description: "{{ 'Prometheus cannot connect the alertmanager\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}' | b64encode }}"
+      prometheus_connection_to_alertmanager:
+        alert: PrometheusNotConnectedToAlertmanager
+        expr: prometheus_notifications_alertmanagers_discovered < 1
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ 'Prometheus not connected to alertmanager (instance {{ $labels.instance }})' | b64encode }}"
+          description: "{{ 'Prometheus cannot connect the alertmanager\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}' | b64encode }}"
 
 ...

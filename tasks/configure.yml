@@ -54,6 +54,7 @@
 - name: create alerting rules
   prometheus_alert_rules:
     rules: "{{ prometheus_alert_rules | jinja_encode }}"
+    group: "{{ prometheus_system_group }}"
   when:
     - prometheus_alert_rules is defined
     - prometheus_alert_rules | count > 0
