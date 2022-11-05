@@ -35,6 +35,8 @@ class PrometheusAlertRules(object):
         rules = module.params.get("rules")
         rules = self.is_base64(rules)
 
+        # self.module.log(msg=f" - {rules}")
+
         try:
             self.rules = json.loads(rules)
         except ValueError as e:  # includes simplejson.decoder.JSONDecodeError
@@ -65,45 +67,15 @@ class PrometheusAlertRules(object):
 
         result_state = []
 
+        if isinstance(self.rules, list):
+            """
+            """
+            result_state = self._rules_as_list()
+
         if isinstance(self.rules, dict):
             """
             """
-            for name, values in self.rules.items():
-                """
-                """
-                state = values.get("state", "present")
-
-                properties = self.decode_values(values)
-
-                if properties:
-                    """
-                    """
-                    res = {}
-
-                    if state == "present":
-                        changed = self._write_rule(name, properties)
-
-                        if changed:
-                            res[name] = dict(
-                                changed=True,
-                                state="rule successful written."
-                            )
-                        else:
-                            res[name] = dict(
-                                changed=False,
-                                state="rule has not been changed."
-                            )
-
-                    if state == "absent":
-                        changed = self._delete_rule(name)
-
-                        if changed:
-                            res[name] = dict(
-                                changed=True,
-                                state="rule successful removed."
-                            )
-
-                    result_state.append(res)
+            result_state = self._rules_as_dict()
 
         # define changed for the running tasks
         # migrate a list of dict into dict
@@ -124,42 +96,161 @@ class PrometheusAlertRules(object):
 
         return result
 
+    def _rules_as_list(self):
+        """
+        """
+        result_state = []
+
+        for rule in self.rules:
+            """
+            """
+            properties = []
+            rules = rule.get("rules", {})
+            file_name = rule.get("name", None)
+
+            # self.module.log(msg=f" - {file_name}")
+            # self.module.log(msg=f" - {len(rules)}")
+
+            if len(rules) == 0:
+                res = {}
+                changed = self._delete_rule(file_name)
+
+                if changed:
+                    res[file_name] = dict(
+                        changed=True,
+                        state="rule successful removed."
+                    )
+
+                result_state.append(res)
+
+                return result_state
+
+            for rule_name, values in rules.items():
+                """
+                """
+                # self.module.log(msg=f" - rule: {rule_name}")
+                # state = values.get("state", "present")
+
+                properties.append(self.decode_values(values))
+
+            if properties:
+                """
+                """
+                # self.module.log(msg=f" - write rule {file_name}")
+
+                res = {}
+
+                changed = self._write_rule(file_name, properties)
+
+                if changed:
+                    res[file_name] = dict(
+                        changed=True,
+                        state="rule successful written."
+                    )
+                else:
+                    res[file_name] = dict(
+                        changed=False,
+                        state="rule has not been changed."
+                    )
+
+                # if state == "absent":
+                #     # changed = self._delete_rule(name)
+                #
+                #     if changed:
+                #         res[rule_name] = dict(
+                #             changed=True,
+                #             state="rule successful removed."
+                #         )
+
+                result_state.append(res)
+
+        return result_state
+
+    def _rules_as_dict(self):
+        """
+        """
+        result_state = []
+
+        properties = []
+
+        for name, values in self.rules.items():
+            """
+            """
+            state = values.get("state", "present")
+
+            properties.append(self.decode_values(values))
+
+            if properties:
+                """
+                """
+                res = {}
+
+                if state == "present":
+                    changed = self._write_rule(name, properties)
+
+                    if changed:
+                        res[name] = dict(
+                            changed=True,
+                            state="rule successful written."
+                        )
+                    else:
+                        res[name] = dict(
+                            changed=False,
+                            state="rule has not been changed."
+                        )
+
+                if state == "absent":
+                    changed = self._delete_rule(name)
+
+                    if changed:
+                        res[name] = dict(
+                            changed=True,
+                            state="rule successful removed."
+                        )
+
+                result_state.append(res)
+
+        return result_state
+
     def decode_values(self, values):
         """
         """
-        alert = values.get("alert")
-        for_clause = values.get("for")
-        expression = values.get("expr")
-        labels = values.get("labels")
-        annotations = values.get("annotations")
+        if isinstance(values, dict):
+            alert = values.get("alert")
+            for_clause = values.get("for")
+            expression = values.get("expr")
+            labels = values.get("labels")
+            annotations = values.get("annotations")
 
-        if expression:
-            expression = self.is_base64(expression)
+            if expression:
+                expression = self.is_base64(expression)
 
-        annotations_title = annotations.get('title', None)
-        annotations_description = annotations.get('description', None)
-        annotations_summary = annotations.get('summary', None)
+            annotations_title = annotations.get('title', None)
+            annotations_description = annotations.get('description', None)
+            annotations_summary = annotations.get('summary', None)
 
-        annotations = dict()
+            annotations = dict()
 
-        if annotations_title and len(annotations_title) != 0:
-            annotations['title'] = self.is_base64(annotations_title)
+            if annotations_title and len(annotations_title) != 0:
+                annotations['title'] = self.is_base64(annotations_title)
 
-        if annotations_description and len(annotations_description) != 0:
-            annotations['description'] = self.is_base64(annotations_description)
+            if annotations_description and len(annotations_description) != 0:
+                annotations['description'] = self.is_base64(annotations_description)
 
-        if annotations_summary and len(annotations_summary) != 0:
-            annotations['summary'] = self.is_base64(annotations_summary)
+            if annotations_summary and len(annotations_summary) != 0:
+                annotations['summary'] = self.is_base64(annotations_summary)
 
-        properties = dict(
-            alert = alert,
-            for_clause= for_clause,
-            expression = expression,
-            annotations = annotations
-        )
+            properties = dict(
+                alert = alert,
+                for_clause= for_clause,
+                expression = expression,
+                annotations = annotations
+            )
 
-        if labels:
-            properties['labels'] = labels
+            if labels:
+                properties['labels'] = labels
+        else:
+            properties = dict()
 
         return properties
 
@@ -172,7 +263,7 @@ class PrometheusAlertRules(object):
         data_file     = os.path.join(self.rules_directory, f"{name}.rules")
         checksum_file = os.path.join(self.checksum_directory, f"{name}.rules.checksum")
 
-        return self.__write_file(properties, data_file, checksum_file)
+        return self.__write_file(name, properties, data_file, checksum_file)
 
     def _delete_rule(self, name):
         """
@@ -189,16 +280,21 @@ class PrometheusAlertRules(object):
 
         return False
 
-    def __write_file(self, data, data_file, checksum_file):
+    def __write_file(self, name, data, data_file, checksum_file):
         """
         """
         _old_checksum = ""
+
+        if not os.path.exists(data_file) and os.path.exists(checksum_file):
+            """
+            """
+            os.remove(checksum_file)
 
         if os.path.exists(checksum_file):
             with open(checksum_file, "r") as f:
                 _old_checksum = f.readlines()[0]
 
-        data = self.__template(data)
+        data = self.__template(name, data)
         checksum = self.__checksum(data)
 
         data_up2date = (_old_checksum == checksum)
@@ -229,7 +325,7 @@ class PrometheusAlertRules(object):
         password_hash = hashlib.sha256(password_bytes)
         return password_hash.hexdigest()
 
-    def __template(self, data):
+    def __template(self, name, data):
         """
           generate data from dictionary
         """
@@ -237,43 +333,46 @@ class PrometheusAlertRules(object):
 # generated by ansible
 
 groups:
-- name: ansible alert rule
-  rules:
-    - alert: {{ item.alert }}
-{%- if item.for_clause is defined and item.for_clause | string | length > 0 %}
-      for: {{ item.for_clause }}
+{%- if item is defined and item | count > 0 %}
+  - name: "ansible alert rule : {{ name }}"
+    rules:
+{%- for i in item %}
+    - alert: {{ i.alert }}
+{%- if i.for_clause is defined and i.for_clause | string | length > 0 %}
+      for: {{ i.for_clause }}
 {%- endif %}
-{%- if item.expression is defined and item.expression | string | length > 0 %}
-      expr: {{ item.expression }}
+{%- if i.expression is defined and i.expression | string | length > 0 %}
+      expr: {{ i.expression }}
 {%- endif %}
-{%- if item.labels is defined and item.labels | count > 0 %}
+{%- if i.labels is defined and i.labels | count > 0 %}
       labels:
-{%- for k, v in item.labels.items() %}
+{%- for k, v in i.labels.items() %}
         {{ k }}: {{ v }}
 {%- endfor %}
 {%- endif %}
-{%- if item.annotations is defined and item.annotations | count > 0 %}
+{%- if i.annotations is defined and i.annotations | count > 0 %}
       annotations:
-{%- if item.annotations.title is defined %}
+{%- if i.annotations.title is defined %}
         title: |
-          {{ item.annotations.title | indent(10) }}
+          {{ i.annotations.title | indent(10) }}
 {%- endif %}
-{%- if item.annotations.description is defined %}
+{%- if i.annotations.description is defined %}
         description: |
-          {{ item.annotations.description | indent(10) }}
+          {{ i.annotations.description | indent(10) }}
 {%- endif %}
-{%- if item.annotations.summary is defined %}
+{%- if i.annotations.summary is defined %}
         summary: |
-          {{ item.annotations.summary | indent(10) | indent(10) }}
+          {{ i.annotations.summary | indent(10) | indent(10) }}
 {%- endif %}
-{%- endif %}
-
+{% endif -%}
+{% endfor %}
+{% endif %}
 """
 
         from jinja2 import Template
 
         tm = Template(tpl)
-        d = tm.render(item=data)
+        d = tm.render(name=name, item=data)
 
         return d
 
@@ -318,6 +417,14 @@ def main():
                 type='path',
                 default="/etc/prometheus/rules"
             ),
+            group=dict(
+                required=False,
+                type="str"
+            ),
+            mode=dict(
+                required=False,
+                type="str"
+            )
         ),
         supports_check_mode=True,
     )

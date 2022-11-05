@@ -143,6 +143,8 @@ class FilterModule(object):
         # display.v(f"jinja_encode({data})")
         if isinstance(data, dict):
             data = json.dumps(data, sort_keys=True).encode('utf-8')
+        elif isinstance(data, list):
+            data = json.dumps(data, sort_keys=True).encode('utf-8')
         else:
             data = data.encode('utf-8')
 
