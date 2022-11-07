@@ -334,7 +334,7 @@ class PrometheusAlertRules(object):
 
 groups:
 {%- if item is defined and item | count > 0 %}
-  - name: "ansible alert rule : {{ name }}"
+  - name: "Alert rules for {{ name }}"
     rules:
 {%- for i in item %}
     - alert: {{ i.alert }}
@@ -342,7 +342,8 @@ groups:
       for: {{ i.for_clause }}
 {%- endif %}
 {%- if i.expression is defined and i.expression | string | length > 0 %}
-      expr: {{ i.expression }}
+      expr: |
+        {{ i.expression | indent(8) }}
 {%- endif %}
 {%- if i.labels is defined and i.labels | count > 0 %}
       labels:

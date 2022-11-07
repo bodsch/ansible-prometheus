@@ -186,7 +186,10 @@ prometheus_alerting:
 ##### `prometheus_alert_rules`
 
 All rules that can trigger an alarm are defined under `prometheus_alert_rules`.  
-Each rule is stored in a separate file and can be deactivated individually. 
+
+Each entry kept under `name` is saved as a separate file.  
+This makes it possible to set up a structured configuration for different environments.
+
 
 **ATTENTION: There is one special feature to be observed with the rules:**
 
@@ -198,46 +201,42 @@ A corresponding example is visible below.
 
 ```yaml
 prometheus_alert_rules:
-  watchdog:
-    state: present
-    alert: Watchdog
-    expr: vector(1)
-    for: 10m
-    labels:
-      severity: warning
-    annotations:
-      description: |
-        This is an alert meant to ensure that the entire alerting pipeline is functional.
-        This alert is always firing, therefore it should always be firing in Alertmanager
-        and always fire against a receiver.
-        There are integrations with various notification mechanisms that send a notification when this alert is not firing.
-        For example the
+  - name: ops
+    rules:
+      watchdog:
+        alert: Watchdog
+        expr: vector(1)
+        for: 10m
+        labels:
+          severity: information
+        annotations:
+          description: |
+            This is an alert meant to ensure that the entire alerting pipeline is functional.
+            This alert is always firing, therefore it should always be firing in Alertmanager
+            and always fire against a receiver.
+            There are integrations with various notification mechanisms that send a notification when this alert is not firing.
+            For example the
 
-        "DeadMansSnitch" integration in PagerDuty.
+            "DeadMansSnitch" integration in PagerDuty.
 
-      summary: 'Ensure entire alerting pipeline is functional'
-
-  instance_down:
-    state: absent
-    alert: InstanceDown
-    expr: up == 0
-    for: 1m
-    labels:
-      severity: critical
-    annotations:
-      title: "{{ 'Instance {{ $labels.instance }} down' | b64encode }}"
-      description: "{{ '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.' | b64encode }}"
-
-  prometheus_job_missing:
-    alert: PrometheusJobMissing
-    expr: "{{ 'absent(up{job=\"prometheus\"})' | b64encode }}"
-    for: 0m
-    labels:
-      severity: warning
-    annotations:
-      summary: "{{ 'Prometheus job missing (instance {{ $labels.instance }})' | b64encode }}"
-      description: "{{ 'A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}' | b64encode }}"
+          summary: 'Ensure entire alerting pipeline is functional'
+      #
+      instance_down:
+        # state: absent
+        alert: InstanceDown
+        # Condition for alerting
+        expr: up == 0
+        for: 1m
+        # Annotation - additional informational labels to store more information
+        annotations:
+          title: "{{ 'Instance {{ $labels.instance }} down' | b64encode }}"
+          description: "{{ '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.' | b64encode }}"
+        # Labels - additional labels to be attached to the alert
+        labels:
+          severity: 'critical'
 ```
+
+For more examples, check out the [molecule test](molecule/configured/group_vars/all/alert_rules.yml).
 
 
 ### `prometheus_rule_files`

@@ -143,6 +143,12 @@ def test_files(host, get_vars):
         files.append(f"{defaults_dir}/prometheus")
     if config_dir:
         files.append(f"{config_dir}/prometheus.yml")
+        files.append(f"{config_dir}/rules/ops.rules")
+        files.append(f"{config_dir}/rules/prometheus.rules")
+
+        files.append(f"{config_dir}/file_sd/kresd.yml")
+        files.append(f"{config_dir}/file_sd/node.yml")
+        files.append(f"{config_dir}/file_sd/sensors.yml")
 
     print(files)
 

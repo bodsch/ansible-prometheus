@@ -107,12 +107,6 @@
     path: "{{ prometheus_install_path }}/prometheus"
   register: stat_prometheus_binary
 
-- name: d
-  debug:
-    msg:
-      - "{{ prometheus_install_path }}/prometheus"
-      - "{{ stat_prometheus_binary.stat.exists }}"
-
 - name: create download directory
   become: false
   delegate_to: "{{ prometheus_delegate_to }}"
