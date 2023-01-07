@@ -1,7 +1,7 @@
 ---
 
 - name: include OS specific configuration ({{ ansible_distribution }} ({{ ansible_os_family }}) {{ ansible_distribution_major_version }})
-  include_vars: "{{ lookup('first_found', params) }}"
+  ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
   vars:
     params:
       paths:
@@ -21,11 +21,11 @@
       skip: true
 
 - name: update package cache
-  package:
+  ansible.builtin.package:
     update_cache: true
 
 - name: define delegate instance for download handling
-  set_fact:
+  ansible.builtin.set_fact:
     prometheus_delegate_to: "{{ ansible_host }}"
     prometheus_local_tmp_directory: "{{
         lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
@@ -34,18 +34,21 @@
     - prometheus_direct_download
 
 - name: install dependency
-  package:
+  ansible.builtin.package:
     name: "{{ prometheus_requirements }}"
     state: present
   when:
     - prometheus_requirements | default([]) | count > 0
 
-- block:
+- name: latest release
+  when:
+    - prometheus_version == "latest"
+  block:
     - name: get latest release
       delegate_to: localhost
       become: false
       run_once: true
-      uri:
+      ansible.builtin.uri:
         url: "https://api.github.com/repos/prometheus/prometheus/releases/latest"
         method: GET
         return_content: true
@@ -59,23 +62,26 @@
       until: _latest_release.status == 200
       retries: 5
 
-    - name: set prometheus version to {{ _latest_release.json.tag_name[1:] }}
-      set_fact:
+    - name: re-define prometheus_version
+      ansible.builtin.set_fact:
         prometheus_version: "{{ _latest_release.json.tag_name[1:] }}"
-  when:
-    - prometheus_version == "latest"
 
 - name: detect our installation path '{{ prometheus_install_path | dirname }}'
-  stat:
+  ansible.builtin.stat:
     path: "{{ prometheus_install_path | dirname }}"
     get_checksum: false
   register: stat_prometheus_path
   ignore_errors: true
 
 - name: old installation
+  when:
+    - stat_prometheus_path is defined
+    - stat_prometheus_path.stat is defined
+    - stat_prometheus_path.stat.isdir is defined
+    - not stat_prometheus_path.stat.isdir
   block:
     - name: stop old service
-      service:
+      ansible.builtin.service:
         name: prometheus
         state: stopped
         enabled: false
@@ -83,48 +89,45 @@
         - daemon-reload
 
     - name: remove installed systemd unit
-      file:
+      ansible.builtin.file:
         state: absent
         path: /etc/systemd/system/prometheus.service
       when:
         - ansible_service_mgr | lower == "systemd"
 
     - name: remove installed prometheus
-      file:
+      ansible.builtin.file:
         state: absent
         path: "{{ stat_prometheus_path.stat.path }}"
-  when:
-    - stat_prometheus_path is defined
-    - stat_prometheus_path.stat is defined
-    - stat_prometheus_path.stat.isdir is defined
-    - not stat_prometheus_path.stat.isdir
 
 - name: flush handlers
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
 
 - name: detect installed prometheus binary
-  stat:
+  ansible.builtin.stat:
     path: "{{ prometheus_install_path }}/prometheus"
   register: stat_prometheus_binary
 
 - name: create download directory
   become: false
   delegate_to: "{{ prometheus_delegate_to }}"
-  file:
+  ansible.builtin.file:
     path: "{{ prometheus_local_tmp_directory }}"
     state: directory
     mode: 0750
 
 - name: user and group handling
+  when:
+    - prometheus_system_user != "root"
   block:
     - name: create prometheus group
-      group:
+      ansible.builtin.group:
         name: "{{ prometheus_system_group }}"
         state: present
         system: true
 
     - name: create prometheus user
-      user:
+      ansible.builtin.user:
         name: "{{ prometheus_system_user }}"
         groups: "{{ prometheus_system_group }}"
         append: true
@@ -132,11 +135,9 @@
         system: true
         createhome: false
         home: /nonexistent
-  when:
-    - prometheus_system_user != "root"
 
 - name: create install directory
-  file:
+  ansible.builtin.file:
     path: "{{ prometheus_install_path }}"
     state: directory
     owner: "{{ prometheus_system_user }}"
@@ -144,7 +145,7 @@
     mode: 0755
 
 - name: fix directory rights for {{ prometheus_install_path | dirname }}
-  file:
+  ansible.builtin.file:
     path: "{{ prometheus_install_path | dirname }}"
     state: directory
     owner: "{{ prometheus_system_user }}"
@@ -153,7 +154,7 @@
     recurse: true
 
 - name: create ansible local facts directory
-  file:
+  ansible.builtin.file:
     dest: /etc/ansible/facts.d
     state: directory
     owner: root
@@ -161,39 +162,43 @@
     mode: 0775
 
 - name: merge prometheus configuration between defaults and custom
-  set_fact:
-    prometheus_service: "{{ prometheus_defaults_service | combine( prometheus_service, recursive=True) }}"
-    prometheus_global: "{{ prometheus_defaults_global | combine( prometheus_global, recursive=True) }}"
-    prometheus_alerting: "{{ prometheus_defaults_alerting | combine( prometheus_alerting, recursive=True ) }}"
-    prometheus_remote_write: "{{ prometheus_defaults_remote_write | combine( prometheus_remote_write, recursive=True ) }}"
-    prometheus_remote_read: "{{ prometheus_defaults_remote_read | combine( prometheus_remote_read, recursive=True ) }}"
-    prometheus_storage: "{{ prometheus_defaults_storage | combine( prometheus_storage, recursive=True ) }}"
-    prometheus_tracing: "{{ prometheus_defaults_tracing | combine( prometheus_tracing, recursive=True ) }}"
-    prometheus_rule_files: "{{ prometheus_defaults_rule_files | union( prometheus_rule_files ) }}"
-    prometheus_scrape_configs: "{{ prometheus_defaults_scrape_configs | union( prometheus_scrape_configs ) }}"
+  ansible.builtin.set_fact:
+    prometheus_service: "{{ prometheus_defaults_service | combine(prometheus_service, recursive=True) }}"
+    prometheus_global: "{{ prometheus_defaults_global | combine(prometheus_global, recursive=True) }}"
+    prometheus_alerting: "{{ prometheus_defaults_alerting | combine(prometheus_alerting, recursive=True) }}"
+    prometheus_remote_write: "{{ prometheus_defaults_remote_write | combine(prometheus_remote_write, recursive=True) }}"
+    prometheus_remote_read: "{{ prometheus_defaults_remote_read | combine(prometheus_remote_read, recursive=True) }}"
+    prometheus_storage: "{{ prometheus_defaults_storage | combine(prometheus_storage, recursive=True) }}"
+    prometheus_tracing: "{{ prometheus_defaults_tracing | combine(prometheus_tracing, recursive=True) }}"
+    prometheus_rule_files: "{{ prometheus_defaults_rule_files | union(prometheus_rule_files) }}"
+    prometheus_scrape_configs: "{{ prometheus_defaults_scrape_configs | union(prometheus_scrape_configs) }}"
 
 # -----------
 
 - name: validate file_sd config in prometheus_scrape_configs
-  set_fact:
+  ansible.builtin.set_fact:
     missing_target_definition: "{{ prometheus_scrape_configs | validate_file_sd(prometheus_file_sd_targets) }}"
 
 - name: Fail when file_sd targets are not defined in prometheus_scrape_configs
-  fail:
+  ansible.builtin.fail:
     msg: "For the following files a definition in prometheus_file_sd_targets is missing:\n
       {{ missing_target_definition | join('\n') }}"
   when:
     - missing_target_definition is defined
     - missing_target_definition | count > 0
 
-- name: alertmanager endpoints
+- name: validate alertmanager endpoints
+  when:
+    - prometheus_alerting is defined
+    - prometheus_alerting.alertmanagers is defined
+    - prometheus_alerting.alertmanagers | count > 0
   block:
     - name: validate alertmanager configs
-      set_fact:
+      ansible.builtin.set_fact:
         validated_endpoints: "{{ prometheus_alerting.alertmanagers | validate_alertmanager_endpoints }}"
 
     - name: Fail when the endpoints not present or not supported
-      fail:
+      ansible.builtin.fail:
         msg: "The Alertmanager endpoint ar not valid!\nPlease check your config!\n
              Currently supported endpoints are:\n
               - {{ validated_endpoints[2] | join('\n - ') }}\n
@@ -204,9 +209,6 @@
         - validated_endpoints[0] is defined
         - not validated_endpoints[0]
 
-  when:
-    - prometheus_alerting is defined
-    - prometheus_alerting.alertmanagers is defined
-    - prometheus_alerting.alertmanagers | count > 0
+
 
 ...
