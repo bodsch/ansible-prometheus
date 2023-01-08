@@ -1,6 +1,6 @@
 ---
 
-prometheus_version: latest
+prometheus_version: 2.41.0
 
 prometheus_service:
   log:
