@@ -92,4 +92,3 @@ prometheus_alert_rules:
               VALUE  = {{ $value }}\n
               LABELS = {{ $labels }}
             ' | b64encode }}"
-
