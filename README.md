@@ -193,13 +193,20 @@ Each entry kept under `name` is saved as a separate file.
 This makes it possible to set up a structured configuration for different environments.
 
 
-**ATTENTION: There is one special feature to be observed with the rules:**
+> Go templates offer a similar syntax to Jinja2.  
+> Therefore, it is difficult to transfer them cleanly via Ansible to the target system.  
+> You can transfer the templates as base64 coded strings, but then you have to take
+> care of decoding them yourself.  
+> This always requires more effort in the form of a separate module.
+>
+> Alternatively, you can mark the corresponding string with [`!unsafe`](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_advanced_syntax.html#unsafe-or-raw-strings).
+>
+> Ansible can handle this. But then the molecule tests fail!
+>
+> Yes, you could also use `{% raw %}{% endraw %}`, but then filters like `combine()`
+> are no longer usable.
 
-Prometheus allows the use of templates (e.g. `{{ $labels.instance }}` ).  
-However, these templates collide with the jinja2 templates of Ansible.  
-To avoid this problem, you can use the `b64encode` filter for your Prometheus templates.
-
-A corresponding example is visible below.
+Here is an example of how to use unsafe:
 
 ```yaml
 prometheus_alert_rules:
@@ -230,12 +237,27 @@ prometheus_alert_rules:
         expr: up == 0
         for: 1m
         # Annotation - additional informational labels to store more information
-        annotations:
-          title: "{{ 'Instance {{ $labels.instance }} down' | b64encode }}"
-          description: "{{ '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.' | b64encode }}"
+        annotations: !unsafe
+          notes: "prometheus.matrix.lan"
+          title: 'Instance {{ $labels.instance }} down'
+          description: '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.'
         # Labels - additional labels to be attached to the alert
         labels:
           severity: 'critical'
+
+  - name: prometheus
+    rules:
+      prometheus_job_missing:
+        # state: absent
+        alert: PrometheusJobMissing
+        expr: !unsafe 'absent(up{job="prometheus"})'
+        for: 0m
+        labels:
+          severity: warning
+        annotations: !unsafe
+          summary: 'Prometheus job missing (instance {{ $labels.instance }})'
+          description: 'A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}'
+          
 ```
 
 For more examples, check out the [molecule test](molecule/configured/group_vars/all/alert_rules.yml).

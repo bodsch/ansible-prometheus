@@ -33,18 +33,7 @@ class PrometheusAlertRules(object):
 
         self.rules_directory = module.params.get("rules_directory")
         rules = module.params.get("rules")
-        rules = self.is_base64(rules)
-
-        # self.module.log(msg=f" - {rules}")
-
-        try:
-            self.rules = json.loads(rules)
-        except ValueError as e:  # includes simplejson.decoder.JSONDecodeError
-            self.module.log(msg=f"ValueError - '{e}'")
-        except JSONDecodeError as e:
-            self.module.log(msg=f"JSONDecodeError - '{e}'")
-        except TypeError as e:
-            self.module.log(msg=f"TypeError - '{e}'")
+        self.rules = self.is_base64(rules)
 
         self.checksum_directory = f"{Path.home()}/.ansible/cache/prometheus_alert_rules"
 
@@ -56,6 +45,36 @@ class PrometheusAlertRules(object):
             failed=True,
             msg="initial"
         )
+
+        self.module.log(msg=f" - {self.rules}")
+
+        try:
+            self.rules = json.loads(self.rules)
+        except ValueError as e:  # includes simplejson.decoder.JSONDecodeError
+            self.module.log(msg=f"ValueError - '{e}'")
+
+            return dict(
+                changed=False,
+                failed=True,
+                msg=f"can't decode json: '{e}'"
+            )
+
+        except JSONDecodeError as e:
+            self.module.log(msg=f"JSONDecodeError - '{e}'")
+
+            return dict(
+                changed=False,
+                failed=True,
+                msg=f"can't decode json: '{e}'"
+            )
+        except TypeError as e:
+            self.module.log(msg=f"TypeError - '{e}'")
+
+            return dict(
+                changed=False,
+                failed=True,
+                msg=f"can't decode json: '{e}'"
+            )
 
         if not os.path.exists(self.rules_directory):
             return dict(
@@ -99,6 +118,8 @@ class PrometheusAlertRules(object):
     def _rules_as_list(self):
         """
         """
+        self.module.log(msg="_rules_as_list()")
+
         result_state = []
 
         for rule in self.rules:
@@ -169,6 +190,8 @@ class PrometheusAlertRules(object):
     def _rules_as_dict(self):
         """
         """
+        self.module.log(msg="_rules_as_dict()")
+
         result_state = []
 
         properties = []
@@ -215,6 +238,8 @@ class PrometheusAlertRules(object):
     def decode_values(self, values):
         """
         """
+        self.module.log(msg="decode_values(values)")
+
         if isinstance(values, dict):
             alert = values.get("alert")
             for_clause = values.get("for")
@@ -222,27 +247,29 @@ class PrometheusAlertRules(object):
             labels = values.get("labels")
             annotations = values.get("annotations")
 
+            self.module.log(msg=f"  annotations: {annotations}")
+
             if expression:
                 expression = self.is_base64(expression)
 
-            annotations_title = annotations.get('title', None)
-            annotations_description = annotations.get('description', None)
-            annotations_summary = annotations.get('summary', None)
-
-            annotations = dict()
-
-            if annotations_title and len(annotations_title) != 0:
-                annotations['title'] = self.is_base64(annotations_title)
-
-            if annotations_description and len(annotations_description) != 0:
-                annotations['description'] = self.is_base64(annotations_description)
-
-            if annotations_summary and len(annotations_summary) != 0:
-                annotations['summary'] = self.is_base64(annotations_summary)
+            # annotations_title = annotations.get('title', None)
+            # annotations_description = annotations.get('description', None)
+            # annotations_summary = annotations.get('summary', None)
+            #
+            # annotations = dict()
+            #
+            # if annotations_title and len(annotations_title) != 0:
+            #     annotations['title'] = self.is_base64(annotations_title)
+            #
+            # if annotations_description and len(annotations_description) != 0:
+            #     annotations['description'] = self.is_base64(annotations_description)
+            #
+            # if annotations_summary and len(annotations_summary) != 0:
+            #     annotations['summary'] = self.is_base64(annotations_summary)
 
             properties = dict(
                 alert = alert,
-                for_clause= for_clause,
+                for_clause = for_clause,
                 expression = expression,
                 annotations = annotations
             )
@@ -353,18 +380,10 @@ groups:
 {%- endif %}
 {%- if i.annotations is defined and i.annotations | count > 0 %}
       annotations:
-{%- if i.annotations.title is defined %}
-        title: |
-          {{ i.annotations.title | indent(10) }}
-{%- endif %}
-{%- if i.annotations.description is defined %}
-        description: |
-          {{ i.annotations.description | indent(10) }}
-{%- endif %}
-{%- if i.annotations.summary is defined %}
-        summary: |
-          {{ i.annotations.summary | indent(10) | indent(10) }}
-{%- endif %}
+{%- for k, v in i.annotations.items() %}
+        {{ k }}: |
+          {{ v | indent(10) }}
+{%- endfor %}
 {% endif -%}
 {% endfor %}
 {% endif %}

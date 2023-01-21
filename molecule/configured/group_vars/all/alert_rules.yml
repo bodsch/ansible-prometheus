@@ -27,11 +27,12 @@ prometheus_alert_rules:
         expr: up == 0
         for: 1m
         # Annotation - additional informational labels to store more information
-        annotations:
-          title: "{{ 'Instance {{ $labels.instance }} down' | b64encode }}"
-          description: "{{ '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.' | b64encode }}"
+        annotations: !unsafe
+          notes: "prometheus.matrix.lan"
+          title: 'Instance {{ $labels.instance }} down'
+          description: '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.'
         # Labels - additional labels to be attached to the alert
-        labels:
+        labels: !unsafe
           severity: 'critical'
 
   - name: prometheus
@@ -39,13 +40,13 @@ prometheus_alert_rules:
       prometheus_job_missing:
         # state: absent
         alert: PrometheusJobMissing
-        expr: "{{ 'absent(up{job=\"prometheus\"})' | b64encode }}"
+        expr: !unsafe 'absent(up{job="prometheus"})'
         for: 0m
         labels:
           severity: warning
-        annotations:
-          summary: "{{ 'Prometheus job missing (instance {{ $labels.instance }})' | b64encode }}"
-          description: "{{ 'A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}' | b64encode }}"
+        annotations: !unsafe
+          summary: 'Prometheus job missing (instance {{ $labels.instance }})'
+          description: 'A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}'
 
       prometheus_connection_to_alertmanager:
         alert: PrometheusNotConnectedToAlertmanager
@@ -53,9 +54,10 @@ prometheus_alert_rules:
         for: 0m
         labels:
           severity: critical
-        annotations:
-          summary: "{{ 'Prometheus not connected to alertmanager (instance {{ $labels.instance }})' | b64encode }}"
-          description: "{{ 'Prometheus cannot connect the alertmanager\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}' | b64encode }}"
+        annotations: !unsafe
+          notes: "prometheus.matrix.lan"
+          summary: 'Prometheus not connected to alertmanager (instance {{ $labels.instance }})'
+          description: 'Prometheus cannot connect the alertmanager\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}'
 
       prometheus_notification_backlog:
         alert: PrometheusNotificationsBacklog
@@ -63,13 +65,12 @@ prometheus_alert_rules:
         for: 0m
         labels:
           severity: warning
-        annotations:
-          summary: "{{ 'Prometheus notifications backlog (instance {{ $labels.instance }})' | b64encode }}"
-          description: "{{ '
+        annotations: !unsafe
+          summary: 'Prometheus notifications backlog (instance {{ $labels.instance }})'
+          description: '
             The Prometheus notification queue has not been empty for 10 minutes\n
                 VALUE  = {{ $value }}\n
-                LABELS = {{ $labels }}' | b64encode
-            }}"
+                LABELS = {{ $labels }}'
 
   - name: node_checks
     rules:
@@ -78,17 +79,17 @@ prometheus_alert_rules:
         # "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|run)($|/)".
         # Same rule using "node_filesystem_free_bytes" will fire when disk fills for non-root users.
         alert: HostDiskWillFillIn24Hours
-        expr: "{{
-            '(node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 10 and\n
-              ON (instance, device, mountpoint) predict_linear(node_filesystem_avail_bytes{fstype!~\"tmpfs\"}[1h], 24 * 3600) < 0 and\n
-              ON (instance, device, mountpoint) node_filesystem_readonly == 0' | b64encode }}"
+        expr:  !unsafe
+            '(node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 10 and
+              ON (instance, device, mountpoint) predict_linear(node_filesystem_avail_bytes{fstype!~"tmpfs"}[1h], 24 * 3600) < 0 and
+              ON (instance, device, mountpoint) node_filesystem_readonly == 0'
         for: 2m
         labels:
           severity: warning
-        annotations:
-          summary: "{{ 'Host disk will fill in 24 hours (instance {{ $labels.instance }})' | b64encode }}"
-          description: "{{ '
+        annotations: !unsafe
+          summary: 'Host disk will fill in 24 hours (instance {{ $labels.instance }})'
+          description: '
             Filesystem is predicted to run out of space within the next 24 hours at current write rate\n
               VALUE  = {{ $value }}\n
               LABELS = {{ $labels }}
-            ' | b64encode }}"
+            '

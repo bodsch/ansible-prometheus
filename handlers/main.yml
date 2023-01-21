@@ -24,4 +24,11 @@
   when:
     - ansible_service_mgr | lower == "systemd"
 
+- name: summary of changes or failed
+  ansible.builtin.debug:
+    msg: "{{ _created_alert_rules }}"
+  when:
+    - _created_alert_rules.changed or
+      _created_alert_rules.failed
+
 ...
