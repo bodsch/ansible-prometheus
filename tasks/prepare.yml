@@ -209,6 +209,4 @@
         - validated_endpoints[0] is defined
         - not validated_endpoints[0]
 
-
-
 ...
