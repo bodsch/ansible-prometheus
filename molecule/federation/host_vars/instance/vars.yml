@@ -1,7 +1,5 @@
 ---
 
-prometheus_version: latest
-
 prometheus_service:
   log:
     level: info
