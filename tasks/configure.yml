@@ -16,6 +16,7 @@
     owner: root
     group: "{{ prometheus_system_group }}"
     mode: 0640
+  register: prometheus_config
   notify:
     - validate config
     - reload prometheus

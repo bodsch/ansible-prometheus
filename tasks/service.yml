@@ -1,5 +1,10 @@
 ---
 
+- name: validate config
+  promtool:
+    state: check
+    config: "{{ prometheus_config_dir }}/prometheus.yml"
+
 - name: ensure prometheus is enabled on boot
   become: true
   ansible.builtin.service:
