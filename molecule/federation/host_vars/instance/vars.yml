@@ -58,7 +58,7 @@ prometheus_scrape_configs:
   - job_name: grafana
     static_configs:
       - targets:
-        - 127.0.0.1:3000
+          - 127.0.0.1:3000
   #
   - job_name: node
     file_sd_configs:
@@ -71,7 +71,7 @@ prometheus_scrape_configs:
   - job_name: sensors
     file_sd_configs:
       - files:
-        - "{{ prometheus_config_dir }}/file_sd/sensors.yml"
+          - "{{ prometheus_config_dir }}/file_sd/sensors.yml"
     relabel_configs:
       # remove port from instance name
       - source_labels:
@@ -116,7 +116,7 @@ prometheus_scrape_configs:
   - job_name: kresd
     file_sd_configs:
       - files:
-        - "{{ prometheus_config_dir }}/file_sd/kresd.yml"
+          - "{{ prometheus_config_dir }}/file_sd/kresd.yml"
 
 
 

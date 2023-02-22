@@ -1,25 +1,29 @@
 
 global:
-  # How frequently to scrape targets by default.
+  {# How frequently to scrape targets by default. #}
   scrape_interval: {{ prometheus_global.scrape_interval | default('1m') }}
-  # How long until a scrape request times out.
+  {# How long until a scrape request times out. #}
   scrape_timeout: {{ prometheus_global.scrape_timeout | default('10s') }}
 {% if prometheus_global.evaluation_interval is defined and
       prometheus_global.evaluation_interval | string | length > 0 %}
-  # How frequently to evaluate rules.
+  {# How frequently to evaluate rules. #}
   evaluation_interval: {{ prometheus_global.evaluation_interval | default('1m') }}
 {% endif %}
 {% if prometheus_global.external_labels is defined and
       prometheus_global.external_labels | type == "dict" and
       prometheus_global.external_labels | count > 0 %}
-  # The labels to add to any time series or alerts when communicating with
-  # external systems (federation, remote storage, Alertmanager).
+  {#
+    The labels to add to any time series or alerts when communicating with
+    external systems (federation, remote storage, Alertmanager).
+  #}
   external_labels:
     {{ prometheus_global.external_labels | to_nice_yaml(indent=4,sort_keys=False) | indent(4, False) }}
 {% endif %}
 {% if prometheus_global.query_log_file is defined and
       prometheus_global.query_log_file | string | length > 0 %}
-  # File to which PromQL queries are logged.
-  # Reloading the configuration will reopen the file.
+  {#
+    File to which PromQL queries are logged.
+    Reloading the configuration will reopen the file.
+  #}
   query_log_file: {{ prometheus_global.query_log_file }}
 {% endif %}

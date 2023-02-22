@@ -1,10 +1,9 @@
-
 {% if prometheus_scrape_configs is defined and
       prometheus_scrape_configs | count > 0 %}
+
 scrape_configs:
   {{ prometheus_scrape_configs | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
 {% endif %}
-
 {#
   a complete wallpaper with all possible configuration parameters of a single scrape job
 scrape_configs:

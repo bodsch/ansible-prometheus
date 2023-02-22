@@ -6,10 +6,14 @@
 - name: download
   ansible.builtin.include_tasks: download.yml
   when:
-    - not stat_prometheus_binary.stat.exists
+    - not stat_prometheus_binary.stat.exists or
+      not stat_prometheus_binary.stat.path == prometheus_install_path ~ '/prometheus'
 
 - name: install
   ansible.builtin.include_tasks: install.yml
+  when:
+    - not stat_prometheus_binary.stat.exists or
+      not stat_prometheus_binary.stat.path == prometheus_install_path ~ '/prometheus'
 
 - name: configure
   ansible.builtin.include_tasks: configure.yml

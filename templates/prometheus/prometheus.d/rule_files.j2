@@ -1,6 +1,8 @@
-
 {% if prometheus_rule_files is defined and
       prometheus_rule_files | count > 0 %}
+
 rule_files:
-  {{ prometheus_rule_files | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
+  {% for r in prometheus_rule_files %}
+  - {{ r }}
+  {% endfor %}
 {% endif %}

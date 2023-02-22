@@ -1,13 +1,15 @@
-
 {% if prometheus_storage is defined and
       prometheus_storage | count > 0 %}
+
 storage:
   {{ prometheus_storage | to_nice_yaml(indent=2,sort_keys=False) | indent(2, False) }}
 {% endif %}
 {#
-  a complete wallpaper with all possible configuration parameters
+# Storage related settings that are runtime reloadable.
 storage:
-  [ - <exemplars> ... ]
-  # Configures the maximum size of the circular buffer used to store exemplars for all series. Resizable during runtime.
-  [ max_exemplars: <int> | default = 100000 ]
+  # https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tsdb
+  [ tsdb: <tsdb> ]
+  # https://prometheus.io/docs/prometheus/latest/configuration/configuration/#exemplars
+  # -> Note that exemplar storage is still considered experimental and must be enabled via --enable-feature=exemplar-storage.
+  [ exemplars: <exemplars> ]
 #}
