@@ -26,6 +26,22 @@ By default it is `${HOME}/.cache/ansible/prometheus`.
 If this type of installation is not desired, the download can take place directly on the target system. 
 However, this must be explicitly activated by setting `prometheus_direct_download` to `true`.
 
+## Requirements & Dependencies
+
+Ansible Collections
+
+- [bodsch.core](https://github.com/bodsch/ansible-collection-core)
+- [bodsch.scm](https://github.com/bodsch/ansible-collection-scm)
+
+```bash
+ansible-galaxy collection install bodsch.core
+ansible-galaxy collection install bodsch.scm
+```
+or
+```bash
+ansible-galaxy collection install --requirements-file collections.yml
+```
+
 
 ## Operating systems
 
@@ -257,7 +273,6 @@ prometheus_alert_rules:
         annotations: !unsafe
           summary: 'Prometheus job missing (instance {{ $labels.instance }})'
           description: 'A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}'
-          
 ```
 
 For more examples, check out the [molecule test](molecule/configured/group_vars/all/alert_rules.yml).
@@ -420,4 +435,4 @@ prometheus_scrape_configs:
 
 [Apache](LICENSE)
 
-`FREE SOFTWARE, HELL YEAH!`
+**FREE SOFTWARE, HELL YEAH!**

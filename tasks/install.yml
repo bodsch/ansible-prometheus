@@ -48,11 +48,11 @@
     - prometheus
     - promtool
 
-- name: create local facts
-  ansible.builtin.template:
-    src: ansible_facts.j2
-    dest: /etc/ansible/facts.d/prometheus.fact
-    mode: 0755
+- name: create custom fact file
+  bodsch.core.facts:
+    name: prometheus
+    facts:
+      version: "{{ prometheus_version }}"
 
 - name: create link to binary
   ansible.builtin.file:

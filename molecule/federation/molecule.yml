@@ -49,16 +49,20 @@ platforms:
       - name: prom
         ipv4_address: "10.18.0.2"
 
-
 provisioner:
   name: ansible
   ansible_args:
     - --diff
-    # - -vv
+    - -v
   config_options:
     defaults:
       deprecation_warnings: true
       stdout_callback: yaml
+      callbacks_enabled: profile_tasks
+      gathering: smart
+      fact_caching: jsonfile
+      fact_caching_timeout: 8640
+      fact_caching_connection: "${MOLECULE_EPHEMERAL_DIRECTORY}/ansible_facts"
 
 scenario:
   test_sequence:

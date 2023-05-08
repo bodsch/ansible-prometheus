@@ -1,12 +1,12 @@
 {%- set _alertmanagers = false %}
 {%- set _alert_relabel_configs = false %}
 {% if prometheus_alerting.alertmanagers is defined and
-      prometheus_alerting.alertmanagers | type == "list" and
+      prometheus_alerting.alertmanagers | bodsch.core.type == "list" and
       prometheus_alerting.alertmanagers | count > 0 %}
   {%- set _alertmanagers = true %}
 {% endif %}
 {% if prometheus_alerting.alert_relabel_configs is defined and
-      prometheus_alerting.alert_relabel_configs | type == "dict" and
+      prometheus_alerting.alert_relabel_configs | bodsch.core.type == "dict" and
       prometheus_alerting.alert_relabel_configs | remove_empty_elements | count > 0 %}
   {%- set _alert_relabel_configs = true %}
 {% endif %}
@@ -65,12 +65,12 @@ alerting:
         {{ mng.relabel_configs | to_nice_yaml(indent=8,sort_keys=False) | indent(2, False) }}
       {% endif %}
       {% if mng.static_configs is defined and
-            mng.static_configs | type == "list" and
+            mng.static_configs | bodsch.core.type == "list" and
             mng.static_configs | count > 0 %}
       static_configs:
         {% for static in mng.static_configs %}
           {% if static.targets is defined and
-                static.targets | type == "list" and
+                static.targets | bodsch.core.type == "list" and
                 static.targets | count > 0 %}
       - targets:
             {% for target in static.targets %}
@@ -78,7 +78,7 @@ alerting:
             {% endfor %}
           {% endif %}
           {% if static.labels is defined and
-                static.labels | type == "dict" and
+                static.labels | bodsch.core.type == "dict" and
                 static.labels | count > 0 %}
         labels:
           {{ static.labels | to_nice_yaml(indent=10,sort_keys=False) | indent(4, False) }}
@@ -101,7 +101,7 @@ alerting:
   {% if _alert_relabel_configs %}
   alert_relabel_configs:
     {% if prometheus_alerting.alert_relabel_configs.source_labels is defined and
-          prometheus_alerting.alert_relabel_configs.source_labels | type == "list" and
+          prometheus_alerting.alert_relabel_configs.source_labels | bodsch.core.type == "list" and
           prometheus_alerting.alert_relabel_configs.source_labels | count > 0 %}
     # The source labels select values from existing labels. Their content is concatenated
     # using the configured separator and matched against the configured regular expression

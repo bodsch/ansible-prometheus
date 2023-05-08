@@ -33,7 +33,7 @@ OPTIONS="
     {% endif %}
   {% else %}
     {% if prometheus_service.storage.tsdb.retention is defined and
-          not prometheus_service.storage.tsdb.retention | type == "dict" %}
+          not prometheus_service.storage.tsdb.retention | bodsch.core.type == "dict" %}
   --storage.tsdb.retention={{ prometheus_service.storage.tsdb.retention }} \
     {% endif %}
   {% endif %}
@@ -59,7 +59,7 @@ OPTIONS="
   {# feature configuration #}
   {% endif %}
   {% if prometheus_service.features is defined and
-        prometheus_service.features | type == "list" and
+        prometheus_service.features | bodsch.core.type == "list" and
         prometheus_service.features | count > 0 and
         prometheus_service.features in attr_features %}
   --enable-feature={{ prometheus_service.features | join(', ') }}

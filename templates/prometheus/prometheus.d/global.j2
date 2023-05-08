@@ -10,7 +10,7 @@ global:
   evaluation_interval: {{ prometheus_global.evaluation_interval | default('1m') }}
 {% endif %}
 {% if prometheus_global.external_labels is defined and
-      prometheus_global.external_labels | type == "dict" and
+      prometheus_global.external_labels | bodsch.core.type == "dict" and
       prometheus_global.external_labels | count > 0 %}
   {#
     The labels to add to any time series or alerts when communicating with
